@@ -1,0 +1,53 @@
+<header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center">
+
+        <h1 class="logo me-auto"><a th:href="@{/static}">Kuro </a></h1>
+        <!-- Uncomment below if you prefer to use an image logo -->
+        <!-- <a href="index.html" class="logo me-auto"><img src="/img/logo.png" alt="" class="img-fluid"></a>-->
+
+        <nav id="navbar" class="navbar order-last order-lg-0">
+            <ul>
+                <li><a class="active btn btn-sm animated-button thar-three mr-2 border-0" th:href="@{/static}">Trang chủ</a></li>
+                <li class="dropdown"><a th:href="@{/courses}" class="btn btn-sm animated-button thar-three  mr-2" ><span>Khoá học</span>
+                    <i class="bi bi-chevron-down"></i></a>
+                    <ul>
+                        <li><a class="btn btn-sm animated-button thar-three" th:href="@{/words}">Từ vựng</a></li>
+                        <li><a class="btn btn-sm animated-button thar-three" th:href="@{/phrases}">Cụm từ (TOEIC)</a></li>
+                        <li><a class="btn btn-sm animated-button thar-three" th:href="@{/news}">Đọc báo theo levels</a></li>
+                    </ul>
+                </li>
+                <li><a class="btn btn-sm animated-button thar-three" th:href="@{about}">Về chúng tôi</a></li>
+
+                <li th:if="${#authentication != null}" class="dropdown">
+                    <div class="flex gap-3" style="width:200px">
+                        <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img (31).webp" class="rounded-circle"
+                             height="22" style="width:10%" alt="Avatar" loading="lazy" />
+                        <p id = "nameUser" class="mb-0 mt-1 font-bold">${userName} </p>
+                    </div>
+                    <ul>
+                        <li><a class="btn btn-sm animated-button thar-three" th:href="@{/static}">My profile</a></li>
+                        <li><a class="btn btn-sm animated-button thar-three" th:href="@{/static}">Settings</a></li>
+                        <form id="logoutForm" th:action="@{/logout}" method="POST" class="d-flex" role="search">
+                            <!-- <li><a class="btn btn-sm animated-button thar-three" th:href="">Logout</a></li> -->
+                            <button class="btn btn-sm animated-button thar-three w-100" type="submit">Đăng xuất</button>
+                        </form>
+
+                    </ul>
+                </li>
+
+                <a th:if="${#authentication == null}" th:href="@{/login}" class="get-started-btn btn text-white font-weight-bold">Đăng nhập</a>
+
+                <!--                @endif-->
+            </ul>
+            <i class="bi bi-list mobile-nav-toggle"></i>
+        </nav><!-- .navbar -->
+
+        <!-- <form action="{{ route('logout') }}" method="POST" class="d-flex" role="search">
+            @csrf
+            @method('DELETE')
+            <button class="btn btn-danger" type="submit">Đăng xuất</button>
+        </form> -->
+        <!-- <a th:href="{{ route('login') }}" class="get-started-btn btn text-white font-weight-bold">Đăng nhập</a> -->
+
+    </div>
+</header><!-- End Header -->
