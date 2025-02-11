@@ -209,14 +209,14 @@
 </style>
 <body>
 
-  <!-- Lấy dữ liệu từ DB  -->
-  <?php
-    $string = "lession";
-    $results = DB::select('SELECT * FROM ' . $string);
-  ?>
+<!--  &lt;!&ndash; Lấy dữ liệu từ DB  &ndash;&gt;-->
+<!--  <?php-->
+<!--    $string = "lession";-->
+<!--    $results = DB::select('SELECT * FROM ' . $string);-->
+<!--  ?>-->
     
-    @include('layouts.header')
-
+<!--    @include('layouts.header')-->
+<div th:replace="layout/header :: header"></div>
     <main id="main" data-aos="fade-in">
 
     <!-- ======= Courses Section ======= -->

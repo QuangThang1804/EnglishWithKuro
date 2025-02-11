@@ -30,13 +30,35 @@ public class SectionController {
     @Autowired
     private SectionService sectionService;
 
-//    @GetMapping
-//    public ResponseEntity<?> findAll(
-//        @RequestParam(defaultValue = "0") int page,
-//        @RequestParam(defaultValue = "1000") Integer size,
-//        @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
-//        Page<SectionResponseDetailDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
-//    }
+    @GetMapping("/findAll")
+    public ResponseEntity<?> findAll(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "1000") Integer size,
+        @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
+        Page<SectionResponseDetailDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
+        ObjectMapper mapper = new ObjectMapper();
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .code(Constants.RESPONSE_CODE.SUCCESS)
+                .data(mapper.valueToTree(sectionList.getContent()))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") Integer size,
+            @RequestParam(name = "sort", required = false) List<String> sorts,
+            @RequestParam(required = false) String sectionKind,
+            @RequestParam(required = false) String sectionName) throws Exception {
+        Page<SectionResponseDetailDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
+        ObjectMapper mapper = new ObjectMapper();
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .code(Constants.RESPONSE_CODE.SUCCESS)
+                .data(mapper.valueToTree(sectionList.getContent()))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+    }
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@Validated @RequestBody SectionRequestDto sectionRequestDto) {
