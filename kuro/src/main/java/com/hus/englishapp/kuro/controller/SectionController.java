@@ -5,6 +5,7 @@ import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.Section;
 import com.hus.englishapp.kuro.model.dto.ResponseDTO;
 import com.hus.englishapp.kuro.model.dto.SectionRequestDto;
+import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
 import com.hus.englishapp.kuro.service.SectionService;
 import com.hus.englishapp.kuro.util.Constants;
@@ -30,13 +31,59 @@ public class SectionController {
     @Autowired
     private SectionService sectionService;
 
-//    @GetMapping
-//    public ResponseEntity<?> findAll(
-//        @RequestParam(defaultValue = "0") int page,
-//        @RequestParam(defaultValue = "1000") Integer size,
-//        @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
-//        Page<SectionResponseDetailDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
-//    }
+    @GetMapping("/findAll")
+    public ResponseEntity<?> findAll(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "1000") Integer size,
+        @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
+        Page<SectionResponseContentDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
+
+        ObjectMapper mapper = new ObjectMapper();
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .code(Constants.RESPONSE_CODE.SUCCESS)
+                .data(mapper.valueToTree(sectionList.getContent()))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+    }
+
+    @PostMapping("/change")
+    public ResponseEntity<?> change(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") Integer size,
+            @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
+        Page<Section> sectionList = sectionService.changeStr(PagingUtil.buildPageable(page, size, sorts));
+        ObjectMapper mapper = new ObjectMapper();
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .code(Constants.RESPONSE_CODE.SUCCESS)
+                .data(mapper.valueToTree(sectionList.getContent()))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") Integer size,
+            @RequestParam(name = "sort", required = false) List<String> sorts,
+            @RequestParam(required = false) String sectionKind,
+            @RequestParam(required = false) String sectionName) throws Exception {
+        try {
+            Page<SectionResponseContentDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
+            ObjectMapper mapper = new ObjectMapper();
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .code(Constants.RESPONSE_CODE.SUCCESS)
+                    .data(mapper.valueToTree(sectionList.getContent()))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .code(Constants.RESPONSE_CODE.FAILURE)
+                    .data(null)
+                    .msg("error")
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        }
+    }
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@Validated @RequestBody SectionRequestDto sectionRequestDto) {

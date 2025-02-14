@@ -41,6 +41,10 @@ public class FEController {
         return "register";
     }
 
+    @GetMapping("/courses")
+    public String coursePage() {
+        return "courses";
+    }
 //    @PostMapping("/doLogin")
 //    public String login(@RequestBody AuthRequest authRequest) {
 //        String token = userController.authenticateAndGetToken(authRequest);

@@ -44,7 +44,7 @@ public class SecurityConfig {
                                 "/auth/register" ,"/auth/", "/auth/login", "/doLogin",
                                 "/", "/layout/**","/login", "/register", "/index",
                                 "/public/**", "/layout/footer.html", "/layout/header.html",
-                                "/layout/head.html", "/login.html").permitAll()
+                                "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()

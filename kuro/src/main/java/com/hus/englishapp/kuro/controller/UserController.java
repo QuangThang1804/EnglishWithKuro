@@ -1,5 +1,6 @@
 package com.hus.englishapp.kuro.controller;
 
+import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.AuthRequest;
 import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
@@ -36,6 +37,9 @@ public class UserController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private MessageTemplate messageTemplate;
 
     @GetMapping("/")
     public String home() {
@@ -100,12 +104,11 @@ public class UserController {
                 return ResponseEntity.ok(Collections.singletonMap("token", token));
             }
         } catch (BadCredentialsException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Mật khẩu không chính xác."));
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.passwordIncorrect")));
         } catch (UsernameNotFoundException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Tên người dùng không tồn tại."));
-            System.out.println("Tên người dùng không tồn tại.");
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.usernameNotExist")));
         } catch (Exception ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Lỗi xác thực: " + ex.getMessage()));
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen") + ex.getMessage()));
         }
 //        Map<String, String> response = new HashMap<>();
 //        response.put("token", token);
@@ -116,6 +119,6 @@ public class UserController {
 //        } else {
 //            throw new UsernameNotFoundException("Invalid user request!");
 //        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Lỗi xác thực: " ));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen") ));
     }
 }
