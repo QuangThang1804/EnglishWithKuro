@@ -2,6 +2,7 @@ package com.hus.englishapp.kuro.repository.impl;
 
 import com.hus.englishapp.kuro.model.Section;
 import com.hus.englishapp.kuro.model.dto.SectionRequestDto;
+import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
 import com.hus.englishapp.kuro.repository.SectionRepository;
 import com.hus.englishapp.kuro.repository.SectionRepositoryCustom;
@@ -22,7 +23,7 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
     EntityManager entityManager;
 
     @Override
-    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
+    public Page<SectionResponseContentDto> search(Pageable pageable, String sectionKind, String sectionName) {
         List<Section> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append(" select * from defaultdb.SECTION_SYS t1 ");
@@ -45,9 +46,9 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
             query.setParameter("sectionName", sectionName);
         }
         List<Object[]> count = query.getResultList();
-        List<SectionResponseDetailDto> listSection = new ArrayList<>();
+        List<SectionResponseContentDto> listSection = new ArrayList<>();
         for (Object[] section: count) {
-            SectionResponseDetailDto newSection = new SectionResponseDetailDto();
+            SectionResponseContentDto newSection = new SectionResponseContentDto();
             newSection.setId(DataConvertUtil.safeToString(section[0]));
             newSection.setSectionKind(DataConvertUtil.safeToString(section[2]));
             newSection.setSectionName(DataConvertUtil.safeToString(section[3]));
