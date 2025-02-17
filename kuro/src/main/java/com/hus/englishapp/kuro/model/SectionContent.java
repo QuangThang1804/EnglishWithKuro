@@ -8,16 +8,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "SECTION_SYS")
-public class Section {
+@Entity(name = "SECTION_CONTENT")
+public class SectionContent {
     @Id
     private String id;
+
+    @Column(name = "SECTION_ID")
+    private String sectionId;
 
     @Column(name = "SECTION_KIND")
     private String sectionKind;
@@ -25,6 +26,6 @@ public class Section {
     @Column(name = "SECTION_NAME")
     private String sectionName;
 
-    @Column(name = "SECTION_CONTENT")
-    private String sectionContent;
+    @Column(name = "SECTION_QUES")
+    private String sectionQues;
 }
