@@ -15,10 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.security.SecureRandom;
+import java.util.*;
 
 @Service
 public class SectionService {
@@ -65,6 +63,8 @@ public class SectionService {
             newQues.setS2LanguageWords(quesSplit[1].trim());
             quesList.add(newQues);
         }
+
+//        Collections.shuffle(quesList, new SecureRandom());
         return quesList;
     }
 
