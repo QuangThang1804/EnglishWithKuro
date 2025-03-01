@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
                                 "/auth/register" ,"/auth/", "/auth/login", "/doLogin",
                                 "/", "/layout/**","/login", "/register", "/index",
-                                "/public/**", "/layout/footer.html", "/layout/header.html",
+                                "/public/**", "/layout/footer.html", "/layout/header.html", "/comment/**",
                                 "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
