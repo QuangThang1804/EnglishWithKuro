@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer>, JpaSpecificationExecutor<Comment> {
-    Optional<Comment> findById(Integer id);
+    Optional<Comment> findByIdAndSectionId(Integer id, String sectionId);
 }

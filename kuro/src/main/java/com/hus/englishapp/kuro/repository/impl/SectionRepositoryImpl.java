@@ -49,8 +49,8 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
         for (Object[] section: count) {
             SectionResponseDetailDto newSection = new SectionResponseDetailDto();
             newSection.setId(DataConvertUtil.safeToString(section[0]));
-            newSection.setSectionKind(DataConvertUtil.safeToString(section[2]));
-            newSection.setSectionName(DataConvertUtil.safeToString(section[3]));
+            newSection.setSectionKind(DataConvertUtil.safeToString(section[1]));
+            newSection.setSectionName(DataConvertUtil.safeToString(section[2]));
             listSection.add(newSection);
         }
         return new PageImpl<>(listSection);
