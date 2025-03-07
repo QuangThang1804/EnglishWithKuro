@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class Ques {
+    private String quesId;
     private String s1LanguageWords;
     private String s2LanguageWords;
 }

@@ -40,10 +40,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/generateToken", "/user/userProfile", "/admin/adminProfile","/auth/**", "/", "/layout/**", "/login", "/register", "/index",
+                        .requestMatchers("/auth/generateToken", "/user/userProfile", "/admin/adminProfile","/auth/**",
+                                "/", "/layout/**", "/login", "/register", "/index",
                                 "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course").permitAll()
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
+//                        .requestMatchers("/resultTest/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
 //                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
