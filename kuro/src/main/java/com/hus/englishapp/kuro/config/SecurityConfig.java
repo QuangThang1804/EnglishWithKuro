@@ -33,22 +33,24 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new UserService(); // Ensure UserInfoService implements UserDetailsService
+        return new UserService();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
-                                "/auth/register" ,"/auth/", "/auth/login", "/doLogin",
-                                "/", "/layout/**","/login", "/register", "/index",
-                                "/public/**", "/layout/footer.html", "/layout/header.html",
-                                "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
+                        .requestMatchers("/auth/generateToken", "/user/userProfile", "/admin/adminProfile","/auth/**", "/", "/layout/**", "/login", "/register", "/index",
+                                "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course").permitAll()
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
+//                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
+//                        "/auth/register" ,"/auth/", "/auth/login", "/doLogin", "/auth/forgot-password", "/auth/reset-password",
+//                        "/", "/layout/**","/login", "/register", "/index",
+//                        "/public/**", "/layout/footer.html", "/layout/header.html", "/comment/**",
+//                        "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
                 .formLogin(form -> form
                         .loginPage("/login")
                         .permitAll()

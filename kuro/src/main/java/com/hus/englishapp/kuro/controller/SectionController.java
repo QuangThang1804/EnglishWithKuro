@@ -36,7 +36,7 @@ public class SectionController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "1000") Integer size,
         @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
-        Page<SectionResponseContentDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
+        Page<SectionResponseDetailDto> sectionList = sectionService.findAll(PagingUtil.buildPageable(page, size, sorts));
 
         ObjectMapper mapper = new ObjectMapper();
         ResponseDTO responseDTO = ResponseDTO.builder()
@@ -60,6 +60,26 @@ public class SectionController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(@PathVariable String id) {
+        try {
+            SectionResponseContentDto sectionResponseContentDto = sectionService.findById(id);
+            ObjectMapper mapper = new ObjectMapper();
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .code(Constants.RESPONSE_CODE.SUCCESS)
+                    .data(mapper.valueToTree(sectionResponseContentDto))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            ResponseDTO responseDTO = ResponseDTO.builder()
+                    .code(Constants.RESPONSE_CODE.FAILURE)
+                    .data(null)
+                    .msg(messageTemplate.message("error.SectorController.findFail"))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        }
+    }
+
     @GetMapping("/search")
     public ResponseEntity<?> search(
             @RequestParam(defaultValue = "0") int page,
@@ -68,7 +88,7 @@ public class SectionController {
             @RequestParam(required = false) String sectionKind,
             @RequestParam(required = false) String sectionName) throws Exception {
         try {
-            Page<SectionResponseContentDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
+            Page<SectionResponseDetailDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
             ObjectMapper mapper = new ObjectMapper();
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)

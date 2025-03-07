@@ -17,17 +17,19 @@ public class User {
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
-//    @Column(name = "username")
+    @Column(name = "username")
     private String username;
 
-//    @Column(name = "password")
+    @Column(name = "password")
     private String password;
 
-//    @Column(name = "email")
+    @Column(name = "email")
     private String email;
 
-//    @Column(name = "role")
+    @Column(name = "roles")
     private String roles;
+
+    private String resetToken;
 
 //    @Version
 //    private Integer version;

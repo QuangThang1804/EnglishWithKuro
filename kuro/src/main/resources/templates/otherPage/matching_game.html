@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            max-width: 800px;
+            margin: auto;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card {
+            width: 150px;
+            height: 50px;
+            background-color: lightblue;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<h1>Matching Game</h1>
+<div class="container">
+    <div class="column" id="leftColumn"></div>
+    <div class="column" id="rightColumn"></div>
+</div>
+<script>
+    let questions = [
+        { firstLanguageWords: "apple", secondLanguageWords: "quả táo" },
+        { firstLanguageWords: "banana", secondLanguageWords: "quả chuối" },
+        { firstLanguageWords: "car", secondLanguageWords: "xe hơi" },
+        { firstLanguageWords: "dog", secondLanguageWords: "con chó" },
+        { firstLanguageWords: "cat", secondLanguageWords: "con mèo" },
+        { firstLanguageWords: "lion", secondLanguageWords: "sư tử" },
+        { firstLanguageWords: "cow", secondLanguageWords: "con bò" },
+        { firstLanguageWords: "pig", secondLanguageWords: "con lợn" }
+    ];
+
+    let selectedCards = [];
+    let currentPairs = [];
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function loadNewPairs(n) {
+        if (questions.length === 0 && currentPairs.length === 0) {
+            alert("Bạn đã hoàn thành trò chơi!");
+            return;
+        }
+
+        while (currentPairs.length < n && questions.length > 0) {
+            currentPairs.push(questions.shift());
+        }
+
+        displayCards();
+    }
+
+    function displayCards() {
+        const leftColumn = document.getElementById("leftColumn");
+        const rightColumn = document.getElementById("rightColumn");
+        leftColumn.innerHTML = "";
+        rightColumn.innerHTML = "";
+
+        let wordPairs = [];
+        currentPairs.forEach(pair => {
+            wordPairs.push({ text: pair.firstLanguageWords, type: "eng", pair: pair });
+            wordPairs.push({ text: pair.secondLanguageWords, type: "viet", pair: pair });
+        });
+
+        shuffle(wordPairs);
+
+        wordPairs.forEach(pair => {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.textContent = pair.text;
+            card.dataset.type = pair.type;
+            card.dataset.text = pair.text;
+            card.dataset.pair = JSON.stringify(pair.pair);
+            card.addEventListener("click", handleCardClick);
+
+            if (pair.type === "eng") {
+                leftColumn.appendChild(card);
+            } else {
+                rightColumn.appendChild(card);
+            }
+        });
+    }
+
+    function handleCardClick(event) {
+        const clickedCard = event.target;
+
+        if (selectedCards.length < 2 && !selectedCards.includes(clickedCard)) {
+            selectedCards.push(clickedCard);
+            clickedCard.style.backgroundColor = "lightgreen";
+        }
+
+        if (selectedCards.length === 2) {
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = selectedCards;
+        const pair1 = JSON.parse(card1.dataset.pair);
+        const pair2 = JSON.parse(card2.dataset.pair);
+
+        if (pair1.firstLanguageWords === pair2.firstLanguageWords && pair1.secondLanguageWords === pair2.secondLanguageWords) {
+            if (questions.length > 3) {
+            // Nếu số từ chưa hiển thị > 3, thẻ biến mất dần trong 1s và được thay thế
+                card1.style.transition = "opacity 1s";
+                card2.style.transition = "opacity 1s";
+                card1.style.opacity = "0";
+                card2.style.opacity = "0";
+
+                setTimeout(() => {
+                    card1.remove();
+                    card2.remove();
+                    selectedCards = [];
+                    currentPairs = currentPairs.filter(p => p.firstLanguageWords !== pair1.firstLanguageWords);
+                    loadNewPairs(3);
+                }, 1000);
+            } else {
+                // Nếu số từ chưa hiển thị <= 3, thẻ chỉ mờ đi
+                card1.style.transition = "opacity 1s";
+                card2.style.transition = "opacity 1s";
+                card1.style.opacity = "0.5";
+                card2.style.opacity = "0.5";
+
+                selectedCards = [];
+            }
+        } else {
+            setTimeout(() => {
+<!--                card1.style.backgroundColor = "red";-->
+<!--                card2.style.backgroundColor = "red";-->
+
+                card1.style.border = "2px solid red";
+                card2.style.border = "2px solid red";
+
+                setTimeout(() => {
+                    card1.style.backgroundColor = "lightblue";
+                    card2.style.backgroundColor = "lightblue";
+                    card1.style.border = "none";
+                    card2.style.border = "none";
+                    selectedCards = [];
+                }, 1000);
+            }, 500);
+
+        }
+    }
+
+    loadNewPairs(3);
+</script>
+</body>
+</html>

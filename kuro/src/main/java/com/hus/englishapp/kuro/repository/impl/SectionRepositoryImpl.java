@@ -23,18 +23,17 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
     EntityManager entityManager;
 
     @Override
-    public Page<SectionResponseContentDto> search(Pageable pageable, String sectionKind, String sectionName) {
-        List<Section> list = new ArrayList<>();
+    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
         StringBuilder sql = new StringBuilder();
         sql.append(" select * from defaultdb.SECTION_SYS t1 ");
         sql.append(" WHERE 1=1 ");
 
         if (StringUtils.isNotBlank(sectionKind)) {
-            sql.append(" AND t1.sectionKind = :sectionKind");
+            sql.append(" AND t1.SECTION_KIND = :sectionKind");
         }
 
         if (StringUtils.isNotBlank(sectionName)) {
-            sql.append(" AND t1.sectionName = :sectionName");
+            sql.append(" AND t1.SECTION_NAME = :sectionName");
         }
 
         Query query = entityManager.createNativeQuery(sql.toString());
@@ -46,12 +45,12 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
             query.setParameter("sectionName", sectionName);
         }
         List<Object[]> count = query.getResultList();
-        List<SectionResponseContentDto> listSection = new ArrayList<>();
+        List<SectionResponseDetailDto> listSection = new ArrayList<>();
         for (Object[] section: count) {
-            SectionResponseContentDto newSection = new SectionResponseContentDto();
+            SectionResponseDetailDto newSection = new SectionResponseDetailDto();
             newSection.setId(DataConvertUtil.safeToString(section[0]));
-            newSection.setSectionKind(DataConvertUtil.safeToString(section[2]));
-            newSection.setSectionName(DataConvertUtil.safeToString(section[3]));
+            newSection.setSectionKind(DataConvertUtil.safeToString(section[1]));
+            newSection.setSectionName(DataConvertUtil.safeToString(section[2]));
             listSection.add(newSection);
         }
         return new PageImpl<>(listSection);

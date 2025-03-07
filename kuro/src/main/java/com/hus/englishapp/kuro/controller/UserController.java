@@ -5,6 +5,7 @@ import com.hus.englishapp.kuro.model.AuthRequest;
 import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
+import com.hus.englishapp.kuro.service.PasswordResetService;
 import com.hus.englishapp.kuro.service.UserService;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class UserController {
 
     @Autowired
     private MessageTemplate messageTemplate;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @GetMapping("/")
     public String home() {
@@ -120,5 +124,18 @@ public class UserController {
 //            throw new UsernameNotFoundException("Invalid user request!");
 //        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen") ));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        passwordResetService.sendResetEmail(email);
+        return ResponseEntity.ok("Vui lòng kiểm tra email để đặt lại mật khẩu.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        boolean success = passwordResetService.resetPassword(token, newPassword);
+        return success ? ResponseEntity.ok("Mật khẩu đã được đặt lại thành công.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token không hợp lệ.");
     }
 }

@@ -8,23 +8,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "SECTION_SYS")
-public class Section {
+@Entity(name = "RESULT_TEST")
+public class ResultTest {
     @Id
-    private String id;
+    private Integer id;
 
-    @Column(name = "SECTION_KIND")
-    private String sectionKind;
+    @Column(name = "SECTION_ID")
+    private String sectionId;
 
-    @Column(name = "SECTION_NAME")
-    private String sectionName;
+    @Column(name = "USER_ID")
+    private String userId;
 
-    @Column(name = "SECTION_CONTENT")
-    private String sectionContent;
+    @Column(name = "WRONG_QUES_ID")
+    private String wrongQuesId;
 }

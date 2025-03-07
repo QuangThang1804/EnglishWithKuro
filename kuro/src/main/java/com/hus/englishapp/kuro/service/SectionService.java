@@ -2,31 +2,35 @@ package com.hus.englishapp.kuro.service;
 
 import com.hus.englishapp.kuro.model.Ques;
 import com.hus.englishapp.kuro.model.Section;
+import com.hus.englishapp.kuro.model.SectionContent;
 import com.hus.englishapp.kuro.model.dto.SectionRequestDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
+import com.hus.englishapp.kuro.repository.SectionContentRepository;
 import com.hus.englishapp.kuro.repository.SectionRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.security.SecureRandom;
+import java.util.*;
 
 @Service
 public class SectionService {
     @Autowired
     private SectionRepository sectionRepository;
 
-    public Page<SectionResponseContentDto> findAll(Pageable pageable) {
+    @Autowired
+    private SectionContentRepository sectionContentRepository;
+
+    public Page<SectionResponseDetailDto> findAll(Pageable pageable) {
         Page<Section> sectionList = sectionRepository.findAll(pageable);
-        List<SectionResponseContentDto> sectionResponseDetailDtos = new ArrayList<>();
+        List<SectionResponseDetailDto> sectionResponseDetailDtos = new ArrayList<>();
         for (Section section : sectionList) {
-            SectionResponseContentDto sectionResponseDetailDto = new SectionResponseContentDto();
+            SectionResponseDetailDto sectionResponseDetailDto = new SectionResponseDetailDto();
             sectionResponseDetailDto.setId(section.getId());
             sectionResponseDetailDto.setSectionKind(section.getSectionKind());
             sectionResponseDetailDto.setSectionName(section.getSectionName());
@@ -35,11 +39,40 @@ public class SectionService {
         return new PageImpl<>(sectionResponseDetailDtos);
     }
 
-    public Page<SectionResponseContentDto> search(Pageable pageable, String sectionKind, String sectionName) {
-        Page<SectionResponseContentDto> sectionList = sectionRepository.search(pageable, sectionKind, sectionName);
-        List<SectionResponseContentDto> sectionResponseDetailDtos = new ArrayList<>();
-        for (SectionResponseContentDto section : sectionList) {
-            SectionResponseContentDto sectionResponseDetailDto = new SectionResponseContentDto();
+    public SectionResponseContentDto findById(String id) {
+        Optional<Section> sectionInDb = sectionRepository.findById(id);
+        SectionResponseContentDto sectionResponseContentDto = new SectionResponseContentDto();
+        if (sectionInDb.isPresent()) {
+            sectionResponseContentDto.setId(sectionInDb.get().getId());
+            sectionResponseContentDto.setSectionKind(sectionInDb.get().getSectionKind());
+            sectionResponseContentDto.setSectionName(sectionInDb.get().getSectionName());
+            List<Ques> quesList = getQuesList(sectionInDb.get().getId(),
+                    sectionInDb.get().getSectionKind(), sectionInDb.get().getSectionName());
+            sectionResponseContentDto.setSectionQuesList(quesList);
+        }
+        return sectionResponseContentDto;
+    }
+
+    public List<Ques> getQuesList(String sectionId, String sectionKind, String sectionName) {
+        List<SectionContent> sectionContentList = sectionContentRepository.findListSectionQues(sectionId, sectionKind, sectionName);
+        List<Ques> quesList = new ArrayList<>();
+        for (SectionContent sectionContent: sectionContentList) {
+            Ques newQues = new Ques();
+            String[] quesSplit = sectionContent.getSectionQues().split(":");
+            newQues.setS1LanguageWords(quesSplit[0].trim());
+            newQues.setS2LanguageWords(quesSplit[1].trim());
+            quesList.add(newQues);
+        }
+
+//        Collections.shuffle(quesList, new SecureRandom());
+        return quesList;
+    }
+
+    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
+        Page<SectionResponseDetailDto> sectionList = sectionRepository.search(pageable, sectionKind, sectionName);
+        List<SectionResponseDetailDto> sectionResponseDetailDtos = new ArrayList<>();
+        for (SectionResponseDetailDto section : sectionList) {
+            SectionResponseDetailDto sectionResponseDetailDto = new SectionResponseDetailDto();
             sectionResponseDetailDto.setId(section.getId());
             sectionResponseDetailDto.setSectionKind(section.getSectionKind());
             sectionResponseDetailDto.setSectionName(section.getSectionName());
@@ -60,7 +93,19 @@ public class SectionService {
         }
         section.setSectionKind(sectionRequestDto.getSectionKind());
         section.setSectionName(sectionRequestDto.getSectionName());
-        section.setSectionContent(sectionRequestDto.getSectionContent());
+        if (StringUtils.isNotBlank(sectionRequestDto.getSectionContent())) {
+            section.setSectionContent(sectionRequestDto.getSectionContent());
+            String [] listSentences = sectionRequestDto.getSectionContent().split(";");
+            for (String str:listSentences) {
+                SectionContent sectionContent = new SectionContent();
+                sectionContent.setId(UUID.randomUUID().toString());
+                sectionContent.setSectionId(section.getId());
+                sectionContent.setSectionKind(section.getSectionKind());
+                sectionContent.setSectionName(section.getSectionName());
+                sectionContent.setSectionQues(str.trim().toLowerCase());
+                sectionContentRepository.save(sectionContent);
+            }
+        }
         return sectionRepository.save(section);
     }
 

@@ -47,6 +47,7 @@ public class UserService implements UserDetailsService {
                 .username(userRequestDto.getUsername())
                 .password(userRequestDto.getPassword())
                 .email(userRequestDto.getEmail())
+                .roles("ROLE_USER")
                 .build();
         newUser = userRepository.save(newUser);
         return buildResult(newUser);
