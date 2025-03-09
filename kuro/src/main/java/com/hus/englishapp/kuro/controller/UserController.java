@@ -3,6 +3,7 @@ package com.hus.englishapp.kuro.controller;
 import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.AuthRequest;
 import com.hus.englishapp.kuro.model.User;
+import com.hus.englishapp.kuro.model.dto.UserDto;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
 import com.hus.englishapp.kuro.service.PasswordResetService;
@@ -16,6 +17,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -96,6 +99,16 @@ public class UserController {
         return "Welcome to Admin Profile";
     }
 
+    @GetMapping("/profile")
+    public User getInfoUser() {
+        Authentication ath = SecurityContextHolder.getContext().getAuthentication();
+        if (ath != null && ath.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) ath.getPrincipal();
+            return userService.findUserByUsername(userDetails.getUsername());
+        }
+        return null;
+    }
+
     @PostMapping("/generateToken")
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         try {
@@ -104,7 +117,14 @@ public class UserController {
             );
 
             if (authentication.isAuthenticated()) {
-                String token = jwtService.generateToken(authRequest.getUsername());
+                // Lưu Authentication vào SecurityContext
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                // Lấy thông tin UserDetails từ authentication
+                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+                // Tạo token từ UserDetails (có thể lấy thêm thông tin nếu cần)
+                String token = jwtService.generateToken(userDetails.getUsername());
                 return ResponseEntity.ok(Collections.singletonMap("token", token));
             }
         } catch (BadCredentialsException ex) {
