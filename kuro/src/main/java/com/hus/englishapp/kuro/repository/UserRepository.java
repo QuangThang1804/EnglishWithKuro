@@ -1,8 +1,10 @@
 package com.hus.englishapp.kuro.repository;
 
 import com.hus.englishapp.kuro.model.User;
+import com.hus.englishapp.kuro.model.dto.UserDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
