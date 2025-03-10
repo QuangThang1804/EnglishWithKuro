@@ -57,13 +57,12 @@ public class SectionService {
         List<Ques> quesList = new ArrayList<>();
         for (SectionContent sectionContent: sectionContentList) {
             Ques newQues = new Ques();
-            String[] quesSplit = sectionContent.getSectionQues().split(":");
-            newQues.setS1LanguageWords(quesSplit[0].trim());
-            newQues.setS2LanguageWords(quesSplit[1].trim());
+            newQues.setQuesId(sectionContent.getId());
+            newQues.setS1LanguageWords(sectionContent.getQuestion());
+            newQues.setS2LanguageWords(sectionContent.getAnswer());
             quesList.add(newQues);
         }
 
-//        Collections.shuffle(quesList, new SecureRandom());
         return quesList;
     }
 
@@ -92,16 +91,30 @@ public class SectionService {
         }
         section.setSectionKind(sectionRequestDto.getSectionKind());
         section.setSectionName(sectionRequestDto.getSectionName());
-        if (StringUtils.isNotBlank(sectionRequestDto.getSectionContent())) {
-            section.setSectionContent(sectionRequestDto.getSectionContent());
-            String [] listSentences = sectionRequestDto.getSectionContent().split(";");
-            for (String str:listSentences) {
+//        if (!sectionRequestDto.getSectionQuesions().isEmpty()) {
+//            section.setSectionContent(sectionRequestDto.getSectionContent());
+//            String [] listSentences = sectionRequestDto.getSectionContent().split(";");
+//            for (String str:sectionRequestDto.getSectionQuesions()) {
+//                SectionContent sectionContent = new SectionContent();
+//                sectionContent.setId(UUID.randomUUID().toString());
+//                sectionContent.setSectionId(section.getId());
+//                sectionContent.setSectionKind(section.getSectionKind());
+//                sectionContent.setSectionName(section.getSectionName());
+//                sectionContent.setSectionQues(str.trim());
+//                sectionContentRepository.save(sectionContent);
+//            }
+//        }
+
+        if (!sectionRequestDto.getSectionQuesMap().isEmpty()) {
+            for (Map.Entry<String, String> entry : sectionRequestDto.getSectionQuesMap().entrySet()) {
+                System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
                 SectionContent sectionContent = new SectionContent();
                 sectionContent.setId(UUID.randomUUID().toString());
                 sectionContent.setSectionId(section.getId());
                 sectionContent.setSectionKind(section.getSectionKind());
                 sectionContent.setSectionName(section.getSectionName());
-                sectionContent.setSectionQues(str.trim().toLowerCase());
+                sectionContent.setSectionQues(entry.getKey().trim());
+                sectionContent.setAnswer(entry.getKey().trim());
                 sectionContentRepository.save(sectionContent);
             }
         }
@@ -114,24 +127,24 @@ public class SectionService {
 
 
 
-    public Page<Section> changeStr(Pageable pageable) {
-        Page<Section> sectionList = sectionRepository.findAll(pageable);
-        for (Section section: sectionList) {
-            String contentSection = section.getSectionContent();
-            contentSection = contentSection.replace(",", ";");
-            String [] listSentences = contentSection.split(";");
-            List<Ques> quesList = new ArrayList<>();
-            for (String str:listSentences) {
-                String[] question = str.split(":");
-                Ques ques = new Ques();
-                ques.setS1LanguageWords(question[0]);
-                ques.setS2LanguageWords(question[1]);
-                quesList.add(ques);
-            }
-            section.setSectionContent(contentSection);
-            sectionRepository.save(section);
-        }
-
-        return sectionList;
-    }
+//    public Page<Section> changeStr(Pageable pageable) {
+//        Page<Section> sectionList = sectionRepository.findAll(pageable);
+//        for (Section section: sectionList) {
+//            String contentSection = section.getSectionContent();
+//            contentSection = contentSection.replace(",", ";");
+//            String [] listSentences = contentSection.split(";");
+//            List<Ques> quesList = new ArrayList<>();
+//            for (String str:listSentences) {
+//                String[] question = str.split(":");
+//                Ques ques = new Ques();
+//                ques.setS1LanguageWords(question[0]);
+//                ques.setS2LanguageWords(question[1]);
+//                quesList.add(ques);
+//            }
+//            section.setSectionContent(contentSection);
+//            sectionRepository.save(section);
+//        }
+//
+//        return sectionList;
+//    }
 }

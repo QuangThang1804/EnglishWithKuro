@@ -28,4 +28,10 @@ public class SectionContent {
 
     @Column(name = "SECTION_QUES")
     private String sectionQues;
+
+    @Column(name = "QUESTION")
+    private String question;
+
+    @Column(name = "ANSWER")
+    private String answer;
 }

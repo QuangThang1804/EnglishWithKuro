@@ -2,10 +2,12 @@ package com.hus.englishapp.kuro.controller;
 
 import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.AuthRequest;
+import com.hus.englishapp.kuro.model.SectionContent;
 import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.UserDto;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
+import com.hus.englishapp.kuro.service.ExcelService;
 import com.hus.englishapp.kuro.service.PasswordResetService;
 import com.hus.englishapp.kuro.service.UserService;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 import com.hus.englishapp.kuro.service.JwtService;
 import io.jsonwebtoken.Jwts;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.*;
@@ -149,13 +152,13 @@ public class UserController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         passwordResetService.sendResetEmail(email);
-        return ResponseEntity.ok("Vui lòng kiểm tra email để đặt lại mật khẩu.");
+        return ResponseEntity.ok("Vui lòng kiểm tra email để đặt lại mật khẩu. Please check your email to reset password");
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
         boolean success = passwordResetService.resetPassword(token, newPassword);
-        return success ? ResponseEntity.ok("Mật khẩu đã được đặt lại thành công.") :
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token không hợp lệ.");
+        return success ? ResponseEntity.ok("Mật khẩu đã được đặt lại thành công. Password had been reset success") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token không hợp lệ. Invalid token");
     }
 }

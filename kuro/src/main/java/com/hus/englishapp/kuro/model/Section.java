@@ -25,6 +25,6 @@ public class Section {
     @Column(name = "SECTION_NAME")
     private String sectionName;
 
-    @Column(name = "SECTION_CONTENT")
-    private String sectionContent;
+//    @Column(name = "SECTION_CONTENT")
+//    private String sectionContent;
 }

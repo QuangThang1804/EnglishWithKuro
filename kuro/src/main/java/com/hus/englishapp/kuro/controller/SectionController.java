@@ -3,10 +3,12 @@ package com.hus.englishapp.kuro.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.Section;
+import com.hus.englishapp.kuro.model.SectionContent;
 import com.hus.englishapp.kuro.model.dto.ResponseDTO;
 import com.hus.englishapp.kuro.model.dto.SectionRequestDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
+import com.hus.englishapp.kuro.service.ExcelService;
 import com.hus.englishapp.kuro.service.SectionService;
 import com.hus.englishapp.kuro.util.Constants;
 import com.hus.englishapp.kuro.util.PagingUtil;
@@ -14,9 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,6 +34,9 @@ public class SectionController {
 
     @Autowired
     private SectionService sectionService;
+
+    @Autowired
+    private ExcelService excelService;
 
     @GetMapping("/findAll")
     public ResponseEntity<?> findAll(
@@ -46,19 +53,19 @@ public class SectionController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-    @PostMapping("/change")
-    public ResponseEntity<?> change(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000") Integer size,
-            @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
-        Page<Section> sectionList = sectionService.changeStr(PagingUtil.buildPageable(page, size, sorts));
-        ObjectMapper mapper = new ObjectMapper();
-        ResponseDTO responseDTO = ResponseDTO.builder()
-                .code(Constants.RESPONSE_CODE.SUCCESS)
-                .data(mapper.valueToTree(sectionList.getContent()))
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
-    }
+//    @PostMapping("/change")
+//    public ResponseEntity<?> change(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "1000") Integer size,
+//            @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
+//        Page<Section> sectionList = sectionService.changeStr(PagingUtil.buildPageable(page, size, sorts));
+//        ObjectMapper mapper = new ObjectMapper();
+//        ResponseDTO responseDTO = ResponseDTO.builder()
+//                .code(Constants.RESPONSE_CODE.SUCCESS)
+//                .data(mapper.valueToTree(sectionList.getContent()))
+//                .build();
+//        return ResponseEntity.ok().body(responseDTO);
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable String id) {
@@ -164,5 +171,12 @@ public class SectionController {
                     .build();
             return ResponseEntity.ok().body(responseDTO);
         }
+    }
+
+    @PostMapping("/excel/upload")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    public ResponseEntity<?> uploadExcel(@RequestParam String sectionKind, @RequestParam String sectionName, @RequestParam("file") MultipartFile file) {
+        List<SectionContent> sectionContentList = excelService.readExcelFile(sectionKind, sectionName, file);
+        return ResponseEntity.ok(sectionContentList);
     }
 }
