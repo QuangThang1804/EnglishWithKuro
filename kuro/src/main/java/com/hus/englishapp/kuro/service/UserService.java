@@ -31,16 +31,20 @@ public class UserService implements UserDetailsService {
     }
 
     public String addUser(User userInfo) {
-        // Encode password before saving the user
-        userInfo.setId(UUID.randomUUID().toString());
         userInfo.setPassword(encoder.encode(userInfo.getPassword()));
         userRepository.save(userInfo);
         return "User Added Successfully";
     }
 
     public User saveUser(User user) {
-        return userRepository.save(user);
+        try {
+            user.setPassword(encoder.encode(user.getPassword()));
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lưu người dùng: " + e.getMessage());
+        }
     }
+
 
     public UserResponseDto create(UserRequestDto userRequestDto) {
         User newUser = User.builder()
@@ -55,7 +59,7 @@ public class UserService implements UserDetailsService {
 
     public UserResponseDto buildResult(User newUser) {
         return UserResponseDto.builder()
-                .id(newUser.getId())
+                .id(newUser.getId().toString())
                 .username(newUser.getUsername())
                 .password(newUser.getPassword())
                 .email(newUser.getEmail())
