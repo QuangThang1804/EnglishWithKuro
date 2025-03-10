@@ -39,8 +39,15 @@ public class UserService implements UserDetailsService {
     }
 
     public User saveUser(User user) {
-        return userRepository.save(user);
+        try {
+            user.setId(UUID.randomUUID().toString());
+            user.setPassword(encoder.encode(user.getPassword()));
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lưu người dùng: " + e.getMessage());
+        }
     }
+
 
     public UserResponseDto create(UserRequestDto userRequestDto) {
         User newUser = User.builder()
