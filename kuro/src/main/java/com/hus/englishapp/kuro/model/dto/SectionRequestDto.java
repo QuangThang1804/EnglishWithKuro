@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.*;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,4 +16,6 @@ public class SectionRequestDto {
     private String sectionKind;
     private String sectionName;
     private String sectionContent;
+    private List<String> sectionQuesions;
+    private Map<String, String> sectionQuesMap;
 }
