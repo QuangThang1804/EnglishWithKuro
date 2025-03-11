@@ -1,15 +1,19 @@
 package com.hus.englishapp.kuro.service;
 
+import com.hus.englishapp.kuro.exception.AppException;
 import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
 import com.hus.englishapp.kuro.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.UUID;
 import java.util.Optional;
 
@@ -30,21 +34,17 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
-    public String addUser(User userInfo) {
-        // Encode password before saving the user
-        userInfo.setId(UUID.randomUUID().toString());
-        userInfo.setPassword(encoder.encode(userInfo.getPassword()));
-        userRepository.save(userInfo);
-        return "User Added Successfully";
-    }
-
+    @Transactional()
     public User saveUser(User user) {
         try {
+            if (userRepository.checkAccountAvailable(user.getUsername(), user.getEmail()) > 0) {
+                throw new AppException("Tài khoản đã tồn tại!", HttpStatus.BAD_REQUEST);
+            }
             user.setId(UUID.randomUUID().toString());
             user.setPassword(encoder.encode(user.getPassword()));
             return userRepository.save(user);
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi lưu người dùng: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
