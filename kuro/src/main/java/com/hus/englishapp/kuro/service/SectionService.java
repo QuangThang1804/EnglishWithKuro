@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -79,6 +80,7 @@ public class SectionService {
         return new PageImpl<>(sectionResponseDetailDtos);
     }
 
+    @Transactional
     public Section update(SectionRequestDto sectionRequestDto) {
         Section section = new Section();
         if (sectionRequestDto.getId() != null) {
@@ -106,6 +108,7 @@ public class SectionService {
 //        }
 
         if (!sectionRequestDto.getSectionQuesMap().isEmpty()) {
+            sectionContentRepository.deleteBySectionNameAndSectionKind(section.getSectionName(), section.getSectionKind());
             for (Map.Entry<String, String> entry : sectionRequestDto.getSectionQuesMap().entrySet()) {
                 System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
                 SectionContent sectionContent = new SectionContent();
@@ -113,8 +116,8 @@ public class SectionService {
                 sectionContent.setSectionId(section.getId());
                 sectionContent.setSectionKind(section.getSectionKind());
                 sectionContent.setSectionName(section.getSectionName());
-                sectionContent.setSectionQues(entry.getKey().trim());
-                sectionContent.setAnswer(entry.getKey().trim());
+                sectionContent.setQuestion(entry.getKey().trim());
+                sectionContent.setAnswer(entry.getValue().trim());
                 sectionContentRepository.save(sectionContent);
             }
         }

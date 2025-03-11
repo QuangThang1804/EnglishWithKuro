@@ -17,4 +17,6 @@ public interface SectionContentRepository extends JpaRepository<SectionContent, 
     List<SectionContent> findListSectionQues(@Param("sectionId") String sectionId, @Param("sectionKind") String sectionKind, @Param("sectionName") String sectionName);
 
     Optional<SectionContent> findById(String id);
+
+    void deleteBySectionNameAndSectionKind(String sectionName, String sectionKind);
 }
