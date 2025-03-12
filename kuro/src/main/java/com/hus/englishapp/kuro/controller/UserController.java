@@ -69,9 +69,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute User user) {
-        userService.saveUser(user);
-        return "redirect:/login";
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.saveUser(user));
     }
 
     @PostMapping("/create")
@@ -83,11 +82,6 @@ public class UserController {
     @GetMapping("/welcome")
     public String welcome() {
         return "Welcome this endpoint is not secure";
-    }
-
-    @PostMapping("/addNewUser")
-    public String addNewUser(@RequestBody User userInfo) {
-        return userService.addUser(userInfo);
     }
 
     @GetMapping("/user/userProfile")
