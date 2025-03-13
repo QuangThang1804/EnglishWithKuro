@@ -124,6 +124,7 @@ public class SectionService {
         return sectionRepository.save(section);
     }
 
+    @Transactional
     public void deleteById(String id) {
         sectionRepository.deleteById(id);
     }
