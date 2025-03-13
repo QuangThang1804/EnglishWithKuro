@@ -7,10 +7,15 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class SectionResponseDetailDto {
     private String id;
     private String sectionKind;
     private String sectionName;
+
+    public SectionResponseDetailDto(String id, String sectionKind, String sectionName) {
+        this.id = id;
+        this.sectionKind = sectionKind;
+        this.sectionName = sectionName;
+    }
 }
