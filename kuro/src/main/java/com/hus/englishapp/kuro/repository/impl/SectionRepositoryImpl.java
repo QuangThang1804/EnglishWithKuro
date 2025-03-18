@@ -22,37 +22,37 @@ public class SectionRepositoryImpl implements SectionRepositoryCustom {
     @PersistenceContext(unitName = "entityManagerFactory")
     EntityManager entityManager;
 
-    @Override
-    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
-        StringBuilder sql = new StringBuilder();
-        sql.append(" select * from defaultdb.SECTION_SYS t1 ");
-        sql.append(" WHERE 1=1 ");
-
-        if (StringUtils.isNotBlank(sectionKind)) {
-            sql.append(" AND t1.SECTION_KIND = :sectionKind");
-        }
-
-        if (StringUtils.isNotBlank(sectionName)) {
-            sql.append(" AND t1.SECTION_NAME = :sectionName");
-        }
-
-        Query query = entityManager.createNativeQuery(sql.toString());
-        if (StringUtils.isNotBlank(sectionKind)) {
-            query.setParameter("sectionKind", sectionKind);
-        }
-
-        if (StringUtils.isNotBlank(sectionName)) {
-            query.setParameter("sectionName", sectionName);
-        }
-        List<Object[]> count = query.getResultList();
-        List<SectionResponseDetailDto> listSection = new ArrayList<>();
-        for (Object[] section: count) {
-            SectionResponseDetailDto newSection = new SectionResponseDetailDto();
-            newSection.setId(DataConvertUtil.safeToString(section[0]));
-            newSection.setSectionKind(DataConvertUtil.safeToString(section[1]));
-            newSection.setSectionName(DataConvertUtil.safeToString(section[2]));
-            listSection.add(newSection);
-        }
-        return new PageImpl<>(listSection);
-    }
+//    @Override
+//    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
+//        StringBuilder sql = new StringBuilder();
+//        sql.append(" select * from defaultdb.SECTION_SYS t1 ");
+//        sql.append(" WHERE 1=1 ");
+//
+//        if (StringUtils.isNotBlank(sectionKind)) {
+//            sql.append(" AND t1.SECTION_KIND = :sectionKind");
+//        }
+//
+//        if (StringUtils.isNotBlank(sectionName)) {
+//            sql.append(" AND t1.SECTION_NAME = :sectionName");
+//        }
+//
+//        Query query = entityManager.createNativeQuery(sql.toString());
+//        if (StringUtils.isNotBlank(sectionKind)) {
+//            query.setParameter("sectionKind", sectionKind);
+//        }
+//
+//        if (StringUtils.isNotBlank(sectionName)) {
+//            query.setParameter("sectionName", sectionName);
+//        }
+//        List<Object[]> count = query.getResultList();
+//        List<SectionResponseDetailDto> listSection = new ArrayList<>();
+//        for (Object[] section: count) {
+//            SectionResponseDetailDto newSection = new SectionResponseDetailDto();
+//            newSection.setId(DataConvertUtil.safeToString(section[0]));
+//            newSection.setSectionKind(DataConvertUtil.safeToString(section[1]));
+//            newSection.setSectionName(DataConvertUtil.safeToString(section[2]));
+//            listSection.add(newSection);
+//        }
+//        return new PageImpl<>(listSection);
+//    }
 }

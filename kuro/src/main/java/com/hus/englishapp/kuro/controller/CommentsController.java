@@ -1,7 +1,6 @@
 package com.hus.englishapp.kuro.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hus.englishapp.kuro.model.Comment;
 import com.hus.englishapp.kuro.model.Comments;
 import com.hus.englishapp.kuro.model.dto.CommentsResponse;
 import com.hus.englishapp.kuro.model.dto.ResponseDTO;
