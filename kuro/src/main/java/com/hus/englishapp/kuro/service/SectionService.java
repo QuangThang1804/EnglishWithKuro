@@ -8,8 +8,7 @@ import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
 import com.hus.englishapp.kuro.repository.SectionContentRepository;
 import com.hus.englishapp.kuro.repository.SectionRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -19,12 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class SectionService {
-    @Autowired
-    private SectionRepository sectionRepository;
-
-    @Autowired
-    private SectionContentRepository sectionContentRepository;
+    private final SectionRepository sectionRepository;
+    private final SectionContentRepository sectionContentRepository;
 
     public Page<SectionResponseDetailDto> findAll(Pageable pageable) {
         Page<Section> sectionList = sectionRepository.findAll(pageable);
@@ -46,6 +43,7 @@ public class SectionService {
             sectionResponseContentDto.setId(sectionInDb.get().getId());
             sectionResponseContentDto.setSectionKind(sectionInDb.get().getSectionKind());
             sectionResponseContentDto.setSectionName(sectionInDb.get().getSectionName());
+
             List<Ques> quesList = getQuesList(sectionInDb.get().getId(),
                     sectionInDb.get().getSectionKind(), sectionInDb.get().getSectionName());
             sectionResponseContentDto.setSectionQuesList(quesList);
@@ -66,6 +64,12 @@ public class SectionService {
 
         return quesList;
     }
+
+
+    public Page<SectionResponseDetailDto> searchAll(String name, String kind, Pageable pageable) {
+        return sectionRepository.searchAll(name, kind, pageable);
+    }
+
 
     public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
         Page<SectionResponseDetailDto> sectionList = sectionRepository.search(pageable, sectionKind, sectionName);

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hus.englishapp.kuro.config.MessageTemplate;
 import com.hus.englishapp.kuro.model.Section;
 import com.hus.englishapp.kuro.model.SectionContent;
-import com.hus.englishapp.kuro.model.dto.ResponseDTO;
-import com.hus.englishapp.kuro.model.dto.SectionRequestDto;
-import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
-import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
+import com.hus.englishapp.kuro.model.dto.*;
 import com.hus.englishapp.kuro.service.ExcelService;
 import com.hus.englishapp.kuro.service.SectionService;
 import com.hus.englishapp.kuro.util.Constants;
@@ -15,6 +12,8 @@ import com.hus.englishapp.kuro.util.PagingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -86,6 +85,13 @@ public class SectionController {
             return ResponseEntity.ok().body(responseDTO);
         }
     }
+
+    @PostMapping("/search-section")
+    public ResponseEntity<?> searchSections(@RequestBody SectionContentDto request,
+                                            @PageableDefault Pageable pageable){
+        return ResponseEntity.ok(sectionService.searchAll(request.getSectionName(), request.getSectionKind(), pageable));
+    }
+
 
     @GetMapping("/search")
     public ResponseEntity<?> search(
