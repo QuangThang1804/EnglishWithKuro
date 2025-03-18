@@ -125,11 +125,14 @@ public class UserController {
                 return ResponseEntity.ok(Collections.singletonMap("token", token));
             }
         } catch (BadCredentialsException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.passwordIncorrect")));
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
+                    messageTemplate.message("error.UserController.passwordIncorrect")));
         } catch (UsernameNotFoundException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.usernameNotExist")));
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
+                    messageTemplate.message("error.UserController.usernameNotExist")));
         } catch (Exception ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen") + ex.getMessage()));
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
+                    messageTemplate.message("error.UserController.errorAuthen") + ex.getMessage()));
         }
 //        Map<String, String> response = new HashMap<>();
 //        response.put("token", token);
