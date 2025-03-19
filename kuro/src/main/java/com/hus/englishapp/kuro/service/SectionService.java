@@ -54,15 +54,53 @@ public class SectionService {
     public List<Ques> getQuesList(String sectionId, String sectionKind, String sectionName) {
         List<SectionContent> sectionContentList = sectionContentRepository.findListSectionQues(sectionId, sectionKind, sectionName);
         List<Ques> quesList = new ArrayList<>();
-        for (SectionContent sectionContent: sectionContentList) {
+
+        // Lấy danh sách tất cả câu trả lời có thể (từ dữ liệu lấy về)
+        List<String> allAnswers = new ArrayList<>();
+        for (SectionContent content : sectionContentList) {
+            allAnswers.add(content.getAnswer()); // Lưu tất cả đáp án vào danh sách
+        }
+
+        for (SectionContent sectionContent : sectionContentList) {
             Ques newQues = new Ques();
             newQues.setQuesId(sectionContent.getId());
             newQues.setS1LanguageWords(sectionContent.getQuestion());
             newQues.setS2LanguageWords(sectionContent.getAnswer());
+            newQues.setOptions(options(sectionContent, allAnswers));
+
             quesList.add(newQues);
         }
 
         return quesList;
+    }
+
+    private static String[] options(SectionContent sectionContent, List<String> allAnswers) {
+        // Lấy danh sách đáp án sai (từ dữ liệu, trừ đáp án đúng)
+        List<String> incorrectAnswers = new ArrayList<>(allAnswers);
+        incorrectAnswers.remove(sectionContent.getAnswer()); // Loại bỏ đáp án đúng
+
+        // Nếu số đáp án sai < 3, lặp lại để có đủ 3 đáp án
+        while (incorrectAnswers.size() < 3) {
+            if (incorrectAnswers.isEmpty()){
+                incorrectAnswers.add("Bóng đá"); // Tránh lỗi thiếu đáp án
+            }else if (incorrectAnswers.size() == 1){
+                incorrectAnswers.add("Thời trang"); // Tránh lỗi thiếu đáp án
+            } else {
+                incorrectAnswers.add("Trang sức"); // Tránh lỗi thiếu đáp án
+            }
+        }
+
+        // Xáo trộn danh sách đáp án sai và chọn 3 đáp án
+        Collections.shuffle(incorrectAnswers);
+        List<String> randomIncorrectAnswers = incorrectAnswers.subList(0, 3);
+
+        // Tạo danh sách 4 đáp án (gồm 1 đúng + 3 sai) và xáo trộn
+        List<String> optionsList = new ArrayList<>();
+        optionsList.add(sectionContent.getAnswer());
+        optionsList.addAll(randomIncorrectAnswers);
+        Collections.shuffle(optionsList);
+
+        return optionsList.toArray(new String[0]);
     }
 
 
