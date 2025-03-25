@@ -15,7 +15,7 @@ import java.util.List;
 public class ResultTestRequest {
     private Integer id;
     private String sectionId;
-    private String userId;
+    //    private String userId;
     private List<String> wrongQuesId;
     private List<Ques> listQues;
 }

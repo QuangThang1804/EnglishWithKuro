@@ -39,7 +39,7 @@ public class MatchCardService {
             String userId = userService.currUser().getId();
 
             if (userId == null) {
-                throw new AppException("Không tìm thấy tài khoản người dùng hiện tại", HttpStatus.BAD_REQUEST);
+                throw new AppException("Không tìm thấy tài khoản người dùng hiện tại", HttpStatus.UNAUTHORIZED);
             }
 
             Optional<MatchCard> matchCardInDb = matchCardRepository.findBySectionIdAndUserId(userId, matchCardRequest.getSectionId());
