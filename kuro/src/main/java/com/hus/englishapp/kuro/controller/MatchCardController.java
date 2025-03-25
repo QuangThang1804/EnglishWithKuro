@@ -21,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/matchCard")
+@CrossOrigin("http://localhost:3000")
 @Validated
 @Slf4j
 public class MatchCardController {
@@ -30,7 +31,7 @@ public class MatchCardController {
     @Autowired
     private MessageTemplate messageTemplate;
 
-    @GetMapping("/")
+    @GetMapping("/get-time")
     public ResponseEntity<?> findAllBySection(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "1000") Integer size,
@@ -41,7 +42,7 @@ public class MatchCardController {
         try {
             Page<MatchCardResponse> pageMatchCards = matchCardService.findAllBySectionId(sectionId, PagingUtil.buildPageable(page, size, sorts));
 
-            ResponseDTO responseDTO =ResponseDTO.builder()
+            ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)
                     .data(mapper.valueToTree(pageMatchCards.getContent()))
                     .meta(ResponseDTO.Meta.builder()
@@ -53,7 +54,7 @@ public class MatchCardController {
                     .build();
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
-            ResponseDTO responseDTO =ResponseDTO.builder()
+            ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.FAILURE)
                     .data(null)
                     .msg("FAIL")
@@ -65,21 +66,8 @@ public class MatchCardController {
     @PostMapping("/create")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
     public ResponseEntity<?> create(@Validated @RequestBody MatchCardRequest matchCardRequest) {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            MatchCard matchCard = matchCardService.create(matchCardRequest);
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .code(Constants.RESPONSE_CODE.SUCCESS)
-                    .data(mapper.valueToTree(matchCard))
-                    .build();
-            return ResponseEntity.ok(responseDTO);
-        } catch (Exception e) {
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .code(Constants.RESPONSE_CODE.SUCCESS)
-                    .data(null)
-                    .msg(messageTemplate.message("error.MatchCard.createFail"))
-                    .build();
-            return ResponseEntity.ok(responseDTO);
-        }
+
+        MatchCard matchCard = matchCardService.create(matchCardRequest);
+        return ResponseEntity.ok(matchCard);
     }
 }

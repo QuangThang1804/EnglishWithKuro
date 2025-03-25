@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String>, JpaSpecificationExecutor<User> {
-//    User findByUsername(String username);
+    //    User findByUsername(String username);
     @Query(value = "select count(u.id) from User u where u.username = :username or u.email = :email")
     int checkAccountAvailable(String username, String email);
 
@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
     Optional<User> findByEmail(String email);
 
     Optional<User> findByResetToken(String resetToken);
+
+    Optional<User> findByRefreshToken(String oldRefreshToken);
 }

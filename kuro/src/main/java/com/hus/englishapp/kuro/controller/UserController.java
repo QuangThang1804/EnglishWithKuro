@@ -1,12 +1,16 @@
 package com.hus.englishapp.kuro.controller;
 
 import com.hus.englishapp.kuro.config.MessageTemplate;
+import com.hus.englishapp.kuro.exception.AppException;
 import com.hus.englishapp.kuro.model.AuthRequest;
 import com.hus.englishapp.kuro.model.SectionContent;
 import com.hus.englishapp.kuro.model.User;
+import com.hus.englishapp.kuro.model.dto.RefreshTokenRequest;
 import com.hus.englishapp.kuro.model.dto.UserDto;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
+import com.hus.englishapp.kuro.model.dto.response.AuthResponse;
+import com.hus.englishapp.kuro.repository.UserRepository;
 import com.hus.englishapp.kuro.service.ExcelService;
 import com.hus.englishapp.kuro.service.PasswordResetService;
 import com.hus.englishapp.kuro.service.UserService;
@@ -50,6 +54,9 @@ public class UserController {
 
     @Autowired
     private PasswordResetService passwordResetService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/")
     public String home() {
@@ -98,13 +105,37 @@ public class UserController {
 
     @GetMapping("/profile")
     public User getInfoUser() {
-        Authentication ath = SecurityContextHolder.getContext().getAuthentication();
-        if (ath != null && ath.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) ath.getPrincipal();
-            return userService.findUserByUsername(userDetails.getUsername());
-        }
-        return null;
+        return userService.currUser();
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
+        String oldRefreshToken = request.getRefreshToken();
+
+        User user = userRepository.findByRefreshToken(oldRefreshToken)
+                .orElseThrow(() -> new AppException("Invalid refresh token", HttpStatus.UNAUTHORIZED));
+
+        // Kiểm tra refresh token hết hạn (nếu có cơ chế expiry)
+        if (jwtService.isTokenExpired(oldRefreshToken)) {
+            throw new AppException("Refresh token expired", HttpStatus.FORBIDDEN);
+        }
+
+        // Tạo cặp token mới
+        String newAccessToken = jwtService.generateToken(user.getUsername());
+        String newRefreshToken = jwtService.generateRefreshToken(user.getUsername());
+
+        // Cập nhật refresh token mới vào DB
+        user.setRefreshToken(newRefreshToken);
+        userRepository.save(user);
+
+        // Trả về cả Access Token & Refresh Token
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("token", newAccessToken);
+        tokens.put("refresh_token", newRefreshToken);
+
+        return ResponseEntity.ok(tokens);
+    }
+
 
     @PostMapping("/generateToken")
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
@@ -119,10 +150,24 @@ public class UserController {
 
                 // Lấy thông tin UserDetails từ authentication
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                String username = userDetails.getUsername();
 
-                // Tạo token từ UserDetails (có thể lấy thêm thông tin nếu cần)
-                String token = jwtService.generateToken(userDetails.getUsername());
-                return ResponseEntity.ok(Collections.singletonMap("token", token));
+                // Tạo Access Token và Refresh Token
+                String accessToken = jwtService.generateToken(username);
+                String refreshToken = jwtService.generateRefreshToken(username);
+
+                // Lưu Refresh Token vào database
+                User user = userRepository.findByUsername(username)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+                user.setRefreshToken(refreshToken);
+                userRepository.save(user);
+
+                // Trả về cả Access Token & Refresh Token
+                Map<String, String> tokens = new HashMap<>();
+                tokens.put("token", accessToken);
+                tokens.put("refresh_token", refreshToken);
+                return ResponseEntity.ok(tokens);
             }
         } catch (BadCredentialsException ex) {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.passwordIncorrect")));
@@ -140,7 +185,16 @@ public class UserController {
 //        } else {
 //            throw new UsernameNotFoundException("Invalid user request!");
 //        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen") ));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen")));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        String refreshToken = userService.extractRefreshToken(token);
+        if (refreshToken != null) {
+            userService.deleteRefreshToken(refreshToken);
+        }
+        return ResponseEntity.ok().body(Map.of("message", "Logged out successfully"));
     }
 
     @PostMapping("/forgot-password")

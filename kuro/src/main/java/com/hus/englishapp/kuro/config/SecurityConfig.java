@@ -1,6 +1,7 @@
 package com.hus.englishapp.kuro.config;
 
 import com.hus.englishapp.kuro.filter.JwtAuthFilter;
+import com.hus.englishapp.kuro.security.CustomAccessDeniedHandler;
 import com.hus.englishapp.kuro.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,12 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter authFilter;
 
+    @Autowired
+    private CorsConfig corsConfig;
+
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserService();
@@ -39,30 +46,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/generateToken", "/user/userProfile", "/admin/adminProfile","/auth/**", "/sectionQues/**",
-                                "/", "/layout/**", "/login", "/register", "/index",
-                                "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course").permitAll()
-                        .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
-                        .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
+                                .requestMatchers("/auth/generateToken", "/auth/refresh", "/user/userProfile", "/admin/adminProfile", "/auth/**", "/sectionQues/**",
+                                        "/", "/layout/**", "/login", "/register", "/index",
+                                        "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course", "/matchCard/**").permitAll()
+                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
+                                .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
 //                        .requestMatchers("/resultTest/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
                 )
 //                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
 //                        "/auth/register" ,"/auth/", "/auth/login", "/doLogin", "/auth/forgot-password", "/auth/reset-password",
 //                        "/", "/layout/**","/login", "/register", "/index",
 //                        "/public/**", "/layout/footer.html", "/layout/header.html", "/comment/**",
 //                        "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login")
-                        .permitAll()
-                )
-                .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)  // Đúng cú pháp mới
+//                .formLogin(form -> form
+//                        .loginPage("/login")
+//                        .permitAll()
+//                )
+//                .logout(logout -> logout
+//                        .logoutSuccessUrl("/login")
+//                        .permitAll()
+//                )
+//                .headers(headers -> headers
+//                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)  // Đúng cú pháp mới
+//                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(accessDeniedHandler) // Thêm xử lý lỗi 403 tùy chỉnh
                 )
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions
