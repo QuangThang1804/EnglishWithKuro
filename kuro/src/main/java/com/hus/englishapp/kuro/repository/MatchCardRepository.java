@@ -10,10 +10,17 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MatchCardRepository extends JpaRepository<MatchCard, Integer>, JpaSpecificationExecutor<MatchCard> {
-    @Query(value = "SELECT t1.id, t1.SECTION_ID, u.username AS userName, t1.TIME_TEST FROM MATCH_CARD t1 LEFT JOIN User u ON t1.USER_ID = u.id " +
-            "WHERE t1.SECTION_ID = '166835cc-b625-4aef-8eee-f3a7a35774fa' ORDER BY t1.TIME_TEST", nativeQuery = true)
+    @Query(value = "SELECT t1.id, t1.SECTION_ID, u.username AS userName, t1.TIME_TEST " +
+            "FROM MATCH_CARD t1 " +
+            "LEFT JOIN User u ON t1.USER_ID = u.id " +
+            "WHERE t1.SECTION_ID = :sectionId ORDER BY t1.TIME_TEST", nativeQuery = true)
     List<MatchCardResponse> findAllBySection(@Param(value = "sectionId") String sectionId);
+
+    @Query(value = "from MATCH_CARD mc " +
+            "where mc.sectionId = :sectionId and mc.userId = :userId")
+    Optional<MatchCard> findBySectionIdAndUserId(String userId, String sectionId);
 }

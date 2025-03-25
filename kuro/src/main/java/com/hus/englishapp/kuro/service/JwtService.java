@@ -1,6 +1,7 @@
 package com.hus.englishapp.kuro.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -21,18 +22,22 @@ public class JwtService {
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
 
     // Generate token with given user name
-    public String generateToken(String userName) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userName);
+    public String generateToken(String username) {
+        return createToken(new HashMap<>(), username, 60 * 60 * 1000);
+    }
+
+    // 🔹 Tạo Refresh Token (Hết hạn sau 7 ngày)
+    public String generateRefreshToken(String username) {
+        return createToken(new HashMap<>(), username, 7 * 24 * 60 * 60 * 1000);
     }
 
     // Create a JWT token with specified claims and subject (user name)
-    private String createToken(Map<String, Object> claims, String userName) {
+    private String createToken(Map<String, Object> claims, String username, long expiration) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userName)
+                .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Token valid for 30 minutes
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -69,7 +74,7 @@ public class JwtService {
     }
 
     // Check if the token is expired
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

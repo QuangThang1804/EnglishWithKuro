@@ -12,6 +12,5 @@ import lombok.NoArgsConstructor;
 public class MatchCardRequest {
     private Integer id;
     private String sectionId;
-    private String userId;
     private double timeTest;
 }
