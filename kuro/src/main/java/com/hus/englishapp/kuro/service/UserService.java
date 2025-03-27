@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,15 +20,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserDetailsService.class);
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordEncoder encoder;
 
@@ -37,6 +38,20 @@ public class UserService implements UserDetailsService {
         // Converting UserInfo to UserDetails
         return userDetail.map(UserInfoDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+
+    public UserDetails loadUserByIdentifier(String identifier) {
+        // Tìm user bằng username hoặc email
+        Optional<User> userOpt = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier));
+
+        User user = userOpt.orElseThrow(() ->
+                new UsernameNotFoundException("User not found with identifier: " + identifier));
+
+        // Converting UserInfo to UserDetails
+        return userOpt.map(UserInfoDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
     }
 
     @Transactional()
