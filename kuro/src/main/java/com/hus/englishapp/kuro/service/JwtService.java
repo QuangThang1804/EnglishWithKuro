@@ -32,7 +32,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Token valid for 30 minutes
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // Token valid for 60 minutes
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -28,6 +28,9 @@ public class MatchCardService {
             Optional<MatchCard> matchCardInDb = matchCardRepository.findById(matchCardRequest.getId());
             if (matchCardInDb.isPresent()) {
                 matchCard = matchCardInDb.get();
+                double newTimeTest = matchCardRequest.getTimeTest();
+                double oldTimeTest = matchCard.getTimeTest();
+                matchCard.setTimeTest(Math.min(newTimeTest, oldTimeTest));
             }
         }
 
