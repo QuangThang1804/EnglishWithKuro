@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
 
@@ -91,6 +92,7 @@ public class UserController {
     }
 
     @PostMapping("social-login")
+    @Transactional
     public ResponseEntity<?> socialLogin(@RequestBody SocialLoginRequest request,
                                          HttpServletResponse response
     ) {
@@ -103,7 +105,7 @@ public class UserController {
             String refreshToken = jwtService.generateRefreshToken(email);
 
             // Lưu refresh token vào database
-            authService.saveRefreshToken(email, refreshToken);
+            authService.saveRefreshToken(email, refreshToken, Constants.TYPE_ACCOUNT.GOOGLE);
 
             // Set refresh token vào cookie
             ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)

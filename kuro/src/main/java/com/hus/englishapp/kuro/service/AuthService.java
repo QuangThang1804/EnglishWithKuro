@@ -141,7 +141,7 @@ public class AuthService {
 
             if (Objects.equals(action, Constants.TYPE_ACCOUNT.GOOGLE_TYPE.LOGIN_GOOGLE)) {
                 // Kiểm tra và tạo user nếu chưa tồn tại
-                User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User user = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.GOOGLE).orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setAvatar((String) payload.get("picture"));
@@ -159,8 +159,8 @@ public class AuthService {
         throw new SecurityException("Invalid Google Token");
     }
 
-    public void saveRefreshToken(String email, String refreshToken) {
-        User user = userRepository.findByEmail(email)
+    public void saveRefreshToken(String email, String refreshToken, String typeAccount) {
+        User user = userRepository.findByEmailAndDifferentProvider(email, typeAccount)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         user.setRefreshToken(refreshToken);
