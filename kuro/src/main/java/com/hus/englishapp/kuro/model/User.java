@@ -41,6 +41,11 @@ public class User {
     @Column(name = "refreshToken")
     private String refreshToken;
 
+    @Column(name = "avatar")
+    private String avatar;
+
+    @Column(name = "provider")
+    private String provider;
 //    @Version
 //    private Integer version;
 }

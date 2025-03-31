@@ -1,10 +1,13 @@
 package com.hus.englishapp.kuro.service;
 
 import com.hus.englishapp.kuro.exception.AppException;
+import com.hus.englishapp.kuro.model.EmailAuthentication;
 import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.UserRequestDto;
 import com.hus.englishapp.kuro.model.dto.UserResponseDto;
+import com.hus.englishapp.kuro.repository.EmailAuthenticationRepository;
 import com.hus.englishapp.kuro.repository.UserRepository;
+import com.hus.englishapp.kuro.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +21,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserDetailsService.class);
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordEncoder encoder;
+    @Autowired
+    private EmailAuthenticationService emailAuthenticationService;
+    @Autowired
+    private EmailAuthenticationRepository emailAuthenticationRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -39,15 +45,78 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
+
+    public UserDetails loadUserByIdentifier(String identifier) {
+        // Tìm user bằng username hoặc email
+        Optional<User> userOpt = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier));
+
+        User user = userOpt.orElseThrow(() ->
+                new UsernameNotFoundException("User not found with identifier: " + identifier));
+
+        // Converting UserInfo to UserDetails
+        return userOpt.map(UserInfoDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
+    }
+    
+    @Transactional
+    public User saveUser(UserRequestDto userRequestDto) {
+        if (userRepository.checkAccountAvailable(
+                userRequestDto.getUsername(),
+                userRequestDto.getEmail(),
+                Constants.TYPE_ACCOUNT.GOOGLE) > 0) {
+            throw new AppException("Tài khoản đã tồn tại!", HttpStatus.BAD_REQUEST);
+        }
+
+        // Xác thực email
+        EmailAuthentication emailAuth = emailAuthenticationService.findByEmail(userRequestDto.getEmail());
+        if (emailAuth == null || !encoder.matches(userRequestDto.getCode(), emailAuth.getCodeConfirm())) {
+            throw new AppException("Email không xác thực thành công, hãy thử lại nhé!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        // Xóa mã xác thực thay vì cập nhật null
+        emailAuthenticationRepository.delete(emailAuth);
+
+        // Tạo user
+        User user = new User();
+        user.setId(UUID.randomUUID().toString());
+        user.setFullname(userRequestDto.getFullname());
+        user.setUsername(userRequestDto.getUsername());
+        user.setEmail(userRequestDto.getEmail());
+        user.setPassword(encoder.encode(userRequestDto.getPassword()));
+        user.setRoles(userRequestDto.getRoles());
+        user.setProvider(Constants.TYPE_ACCOUNT.NORMAL);
+
+        return userRepository.save(user);
+    }
+
+
     @Transactional()
-    public User saveUser(User user) {
+    public User updateUser(UserRequestDto response) {
         try {
-            if (userRepository.checkAccountAvailable(user.getUsername(), user.getEmail()) > 0) {
-                throw new AppException("Tài khoản đã tồn tại!", HttpStatus.BAD_REQUEST);
+            User user = findUserByUsername(response.getUsername());
+            if (user != null) {
+                //user.setEmail(response.getEmail());
+                user.setFullname(response.getFullname());
+                return userRepository.save(user);
             }
-            user.setId(UUID.randomUUID().toString());
-            user.setPassword(encoder.encode(user.getPassword()));
-            return userRepository.save(user);
+
+            throw new AppException("Cập nhập thất bại", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Transactional()
+    public void deletedUser(UserRequestDto response) {
+        try {
+            User user = findUserByUsername(response.getUsername());
+            if (user != null) {
+                userRepository.delete(user);
+                return;
+            }
+
+            throw new AppException("Xóa tài khoản thất bại", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -104,16 +173,5 @@ public class UserService implements UserDetailsService {
     public User findUserByUsername(String username) {
         Optional<User> user = userRepository.findByUsername(username);
         return user.orElse(null);
-    }
-
-    public void deleteRefreshToken(String refreshToken) {
-        userRepository.deleteById(refreshToken);
-    }
-
-    public String extractRefreshToken(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
-        }
-        return null;
     }
 }

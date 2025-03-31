@@ -3,20 +3,17 @@ package com.hus.englishapp.kuro.config;
 import com.hus.englishapp.kuro.filter.JwtAuthFilter;
 import com.hus.englishapp.kuro.security.CustomAccessDeniedHandler;
 import com.hus.englishapp.kuro.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,20 +24,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-
-    @Autowired
-    private JwtAuthFilter authFilter;
-
-    @Autowired
-    private CorsConfig corsConfig;
-
-    @Autowired
-    private CustomAccessDeniedHandler accessDeniedHandler;
+    private final CorsConfig corsConfig;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final UserService userService;
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new UserService();
+        return userService;
     }
 
     @Bean
@@ -48,38 +40,22 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
                 .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/auth/generateToken", "/auth/refresh", "/user/userProfile", "/admin/adminProfile", "/auth/**", "/sectionQues/**",
-                                        "/", "/layout/**", "/login", "/register", "/index",
-                                        "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course", "/matchCard/**").permitAll()
-                                .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
-                                .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
-//                        .requestMatchers("/resultTest/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                                .anyRequest().authenticated()
+                        .requestMatchers("/auth/generateToken", "/auth/refresh", "/auth/social-login", "/auth/oauth2/**", "/oauth2/**", "/user/userProfile",
+                                "/admin/adminProfile", "/auth/**", "/sectionQues/**", "/", "/layout/**", "/login", "/register", "/index",
+                                "/public/**", "/layout/**", "/comment/**", "/login.html", "/section/**", "/course", "/matchCard/**", "/email-authentication/save")
+                        .permitAll()
+                        .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
+                        .anyRequest().authenticated()
                 )
-//                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken",
-//                        "/auth/register" ,"/auth/", "/auth/login", "/doLogin", "/auth/forgot-password", "/auth/reset-password",
-//                        "/", "/layout/**","/login", "/register", "/index",
-//                        "/public/**", "/layout/footer.html", "/layout/header.html", "/comment/**",
-//                        "/layout/head.html", "/login.html", "/section/**", "/course").permitAll()
-//                .formLogin(form -> form
-//                        .loginPage("/login")
-//                        .permitAll()
-//                )
-//                .logout(logout -> logout
-//                        .logoutSuccessUrl("/login")
-//                        .permitAll()
-//                )
-//                .headers(headers -> headers
-//                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)  // Đúng cú pháp mới
-//                )
-                .exceptionHandling(exception -> exception
-                        .accessDeniedHandler(accessDeniedHandler) // Thêm xử lý lỗi 403 tùy chỉnh
-                )
+                .addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class) // Add JWT filter
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions
                 )
-                .authenticationProvider(authenticationProvider()) // Custom authentication provider
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(accessDeniedHandler) // Thêm xử lý lỗi 403 tùy chỉnh
+                )
+                .authenticationProvider(authenticationProvider()); // Custom authentication provider
 
 
         return http.build();
@@ -101,5 +77,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public JwtAuthFilter authFilter() {
+        return new JwtAuthFilter();
     }
 }

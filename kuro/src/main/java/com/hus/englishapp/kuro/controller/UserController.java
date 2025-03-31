@@ -1,62 +1,33 @@
 package com.hus.englishapp.kuro.controller;
 
-import com.hus.englishapp.kuro.config.MessageTemplate;
-import com.hus.englishapp.kuro.exception.AppException;
-import com.hus.englishapp.kuro.model.AuthRequest;
-import com.hus.englishapp.kuro.model.SectionContent;
+import com.hus.englishapp.kuro.model.dto.*;
 import com.hus.englishapp.kuro.model.User;
-import com.hus.englishapp.kuro.model.dto.RefreshTokenRequest;
-import com.hus.englishapp.kuro.model.dto.UserDto;
-import com.hus.englishapp.kuro.model.dto.UserRequestDto;
-import com.hus.englishapp.kuro.model.dto.UserResponseDto;
-import com.hus.englishapp.kuro.model.dto.response.AuthResponse;
-import com.hus.englishapp.kuro.repository.UserRepository;
-import com.hus.englishapp.kuro.service.ExcelService;
-import com.hus.englishapp.kuro.service.PasswordResetService;
-import com.hus.englishapp.kuro.service.UserService;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.hus.englishapp.kuro.model.dto.response.PasswordConfirmRequest;
+import com.hus.englishapp.kuro.service.*;
+import com.hus.englishapp.kuro.util.Constants;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
-import com.hus.englishapp.kuro.service.JwtService;
-import io.jsonwebtoken.Jwts;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.*;
 
 //@Controller
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private MessageTemplate messageTemplate;
-
-    @Autowired
-    private PasswordResetService passwordResetService;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final UserService userService;
+    private final PasswordResetService passwordResetService;
+    private final AuthService authService;
+    private final JwtService jwtService;
 
     @GetMapping("/")
     public String home() {
@@ -76,7 +47,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
+    public ResponseEntity<User> registerUser(@RequestBody UserRequestDto user) {
         return ResponseEntity.ok(userService.saveUser(user));
     }
 
@@ -109,107 +80,140 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
-        String oldRefreshToken = request.getRefreshToken();
-
-        User user = userRepository.findByRefreshToken(oldRefreshToken)
-                .orElseThrow(() -> new AppException("Invalid refresh token", HttpStatus.UNAUTHORIZED));
-
-        // Kiểm tra refresh token hết hạn (nếu có cơ chế expiry)
-        if (jwtService.isTokenExpired(oldRefreshToken)) {
-            throw new AppException("Refresh token expired", HttpStatus.FORBIDDEN);
-        }
-
-        // Tạo cặp token mới
-        String newAccessToken = jwtService.generateToken(user.getUsername());
-        String newRefreshToken = jwtService.generateRefreshToken(user.getUsername());
-
-        // Cập nhật refresh token mới vào DB
-        user.setRefreshToken(newRefreshToken);
-        userRepository.save(user);
-
-        // Trả về cả Access Token & Refresh Token
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("token", newAccessToken);
-        tokens.put("refresh_token", newRefreshToken);
-
-        return ResponseEntity.ok(tokens);
+    public ResponseEntity<?> refresh(@CookieValue("refresh_token") String oldRefreshToken) {
+        return authService.refreshToken(oldRefreshToken);
     }
 
 
     @PostMapping("/generateToken")
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+        return authService.authenticateAndGenerateToken(authRequest);
+    }
+
+    @PostMapping("social-login")
+    public ResponseEntity<?> socialLogin(@RequestBody SocialLoginRequest request,
+                                         HttpServletResponse response
+    ) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-            );
+            // Xác thực token Google và lấy email
+            String email = authService.verifyGoogleToken(request.getToken(), Constants.TYPE_ACCOUNT.GOOGLE_TYPE.LOGIN_GOOGLE);
 
-            if (authentication.isAuthenticated()) {
-                // Lưu Authentication vào SecurityContext
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            // Tạo tokens
+            String accessToken = jwtService.generateToken(email);
+            String refreshToken = jwtService.generateRefreshToken(email);
 
-                // Lấy thông tin UserDetails từ authentication
-                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                String username = userDetails.getUsername();
+            // Lưu refresh token vào database
+            authService.saveRefreshToken(email, refreshToken);
 
-                // Tạo Access Token và Refresh Token
-                String accessToken = jwtService.generateToken(username);
-                String refreshToken = jwtService.generateRefreshToken(username);
+            // Set refresh token vào cookie
+            ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                    .httpOnly(true)
+                    .secure(true) // Chỉ hoạt động với HTTPS
+                    .path("/") // Chỉ gửi với request tới /refresh
+                    .maxAge(7 * 24 * 60 * 60) // 7 ngày
+                    .build();
 
-                // Lưu Refresh Token vào database
-                User user = userRepository.findByUsername(username)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-                user.setRefreshToken(refreshToken);
-                userRepository.save(user);
+            // Trả về cả Access Token & Refresh Token
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("token", accessToken);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(tokens);
 
-                // Trả về cả Access Token & Refresh Token
-                Map<String, String> tokens = new HashMap<>();
-                tokens.put("token", accessToken);
-                tokens.put("refresh_token", refreshToken);
-                return ResponseEntity.ok(tokens);
-            }
-        } catch (BadCredentialsException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
-                    messageTemplate.message("error.UserController.passwordIncorrect")));
-        } catch (UsernameNotFoundException ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
-                    messageTemplate.message("error.UserController.usernameNotExist")));
-        } catch (Exception ex) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message",
-                    messageTemplate.message("error.UserController.errorAuthen") + ex.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Google login failed: " + e.getMessage());
         }
-//        Map<String, String> response = new HashMap<>();
-//        response.put("token", token);
-//        return response;
-
-//        if (authentication.isAuthenticated()) {
-//            return jwtService.generateToken(authRequest.getUsername());
-//        } else {
-//            throw new UsernameNotFoundException("Invalid user request!");
-//        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", messageTemplate.message("error.UserController.errorAuthen")));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
-        String refreshToken = userService.extractRefreshToken(token);
-        if (refreshToken != null) {
-            userService.deleteRefreshToken(refreshToken);
+    public ResponseEntity<?> logout(
+            @CookieValue("refresh_token") String oldRefreshToken,
+            HttpServletResponse response
+    ) {
+        // 1. Revoke refresh token trong DB (nếu tồn tại)
+        if (oldRefreshToken != null) {
+            authService.logout(oldRefreshToken);
         }
-        return ResponseEntity.ok().body(Map.of("message", "Logged out successfully"));
+
+        // 2. Xóa cookie refresh token ở client
+        ResponseCookie deleteRefreshCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true) // Chỉ hoạt động với HTTPS
+                .path("/") // Khớp với path refresh token
+                .maxAge(0) // Xóa cookie ngay lập tức
+                .sameSite("Strict") // Chống CSRF
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+
+        return ResponseEntity.ok()
+                .body(Map.of("message", "Logged out successfully"));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
         passwordResetService.sendResetEmail(email);
-        return ResponseEntity.ok("Vui lòng kiểm tra email để đặt lại mật khẩu. Please check your email to reset password");
+        return ResponseEntity.ok(Map.of("message", "Vui lòng kiểm tra email để đặt lại mật khẩu"));
+    }
+
+    @PostMapping("confirm-code-reset-password")
+    public ResponseEntity<?> confirmCodeResetPassword(@RequestBody ResetPasswordRequest request) {
+        boolean success = passwordResetService.isValidCodeResetPassword(
+                request.getEmail(),
+                request.getCode()
+        );
+
+        return success ? ResponseEntity.ok(Map.of("message", "Xác thực thành công"))
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Xác thực không thành công"));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        boolean success = passwordResetService.resetPassword(token, newPassword);
-        return success ? ResponseEntity.ok("Mật khẩu đã được đặt lại thành công. Password had been reset success") :
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token không hợp lệ. Invalid token");
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        boolean success = passwordResetService.resetPassword(
+                request.getEmail(),
+                request.getCode(),
+                request.getNewPassword()
+        );
+        return success ? ResponseEntity.ok(Map.of("message", "Mật khẩu đã được đặt lại thành công.")) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Lỗi xác thực. Hãy thử lại nhé!."));
     }
+
+    @PostMapping("/confirm-user")
+    public ResponseEntity<Map<String, String>> confirmUser(@RequestBody PasswordConfirmRequest passwordRequest) throws GeneralSecurityException, IOException {
+        boolean success = passwordResetService.confirmUser(passwordRequest);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", success ?
+                "Xác thực thành công." :
+                "Xác thực không thành công.");
+
+        return success ? ResponseEntity.ok(response) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(@RequestBody PasswordRequest passwordRequest) {
+        boolean success = passwordResetService.changePassword(passwordRequest.getOldPassword(), passwordRequest.getNewPassword());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", success ?
+                "Mật khẩu đã được đổi thành công." :
+                "Mật khẩu cũ không khớp.");
+
+        return success ? ResponseEntity.ok(response) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @PostMapping("/update-info-user")
+    public ResponseEntity<?> updateInfoUser(@RequestBody UserRequestDto requestDto) {
+        User result = userService.updateUser(requestDto);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/delete-user")
+    public ResponseEntity<?> deleteUser(@RequestBody UserRequestDto requestDto) {
+        userService.deletedUser(requestDto);
+        return ResponseEntity.ok(Map.of("message", "Xóa tài khoản thành công"));
+    }
+
+
 }
