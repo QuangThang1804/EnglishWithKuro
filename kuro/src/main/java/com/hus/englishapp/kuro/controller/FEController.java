@@ -1,17 +1,5 @@
 package com.hus.englishapp.kuro.controller;
 
-import com.hus.englishapp.kuro.model.AuthRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.HashMap;
-import java.util.Map;
-
 //@Controller
 public class FEController {
 //    @Autowired

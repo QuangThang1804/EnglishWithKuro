@@ -6,6 +6,7 @@ public class DataUtil {
     public static boolean isNullOrEmpty(String string) {
         return string == null || string.trim().isEmpty() || "".equalsIgnoreCase(string);
     }
+    
     public static String makeLikeQuery(String s) {
         if (isNullOrEmpty(s)) {
             return null;

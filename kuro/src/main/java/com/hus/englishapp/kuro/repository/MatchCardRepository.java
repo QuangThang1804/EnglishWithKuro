@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface MatchCardRepository extends JpaRepository<MatchCard, Integer>, JpaSpecificationExecutor<MatchCard> {
     @Query(value = "SELECT t1.id, t1.SECTION_ID, u.fullname AS userName, t1.TIME_TEST " +
             "FROM MATCH_CARD t1 " +
-            "LEFT JOIN User u ON t1.USER_ID = u.id " +
+            "JOIN User u ON t1.USER_ID = u.id " +
             "WHERE t1.SECTION_ID = :sectionId ORDER BY t1.TIME_TEST", nativeQuery = true)
     List<MatchCardResponse> findAllBySection(@Param(value = "sectionId") String sectionId);
 

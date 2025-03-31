@@ -13,10 +13,13 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, String>, JpaSpecificationExecutor<User> {
     //    User findByUsername(String username);
-    @Query(value = "select count(u.id) from User u where u.username = :username or u.email = :email")
-    int checkAccountAvailable(String username, String email);
+    @Query(value = "select count(u.id) from User u where (u.username = :username or u.email = :email) AND u.provider <> :provider")
+    int checkAccountAvailable(String username, String email, String provider);
 
     Optional<User> findByUsername(String username);
+
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.provider <> :provider")
+    Optional<User> findByEmailAndDifferentProvider(String email, String provider);
 
     Optional<User> findByEmail(String email);
 
