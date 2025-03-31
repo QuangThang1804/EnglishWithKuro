@@ -32,12 +32,11 @@ public class ResultQuesController {
     @GetMapping("/findAllBySectionAndUserId")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
     public ResponseEntity<?> findAllBySectionAndUserId(
-            @RequestParam(name = "sectionId") String sectionId,
-            @RequestParam(name = "userId") String userId
+            @RequestParam(name = "sectionId") String sectionId
     ) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            ResultTestResponseDto resultTestResponseDto = resultTestService.findAllBySectionIdAndUserId(sectionId, userId);
+            ResultTestResponseDto resultTestResponseDto = resultTestService.findAllBySectionIdAndUserId(sectionId);
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)
                     .data(mapper.valueToTree(resultTestResponseDto))
@@ -58,7 +57,7 @@ public class ResultQuesController {
     public ResponseEntity<?> create(@Validated @RequestBody ResultTestRequest request) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            List<ResultTest> listResultTest = resultTestService.create(request.getSectionId(), request.getUserId(), request.getWrongQuesId());
+            List<ResultTest> listResultTest = resultTestService.create(request.getSectionId(), request.getWrongQuesId());
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)
                     .data(mapper.valueToTree(listResultTest))

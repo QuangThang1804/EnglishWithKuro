@@ -38,6 +38,9 @@ public class User {
 
     private String resetToken;
 
+    @Column(name = "refreshToken")
+    private String refreshToken;
+
 //    @Version
 //    private Integer version;
 }
