@@ -38,7 +38,7 @@ public class PasswordResetService {
 
     @Transactional
     public void sendResetEmail(String email) {
-        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.GOOGLE);
+        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
         if (userOptional.isPresent()) {
             // Create code random (6 number)
             Random random = new Random();
@@ -67,7 +67,7 @@ public class PasswordResetService {
     }
 
     public boolean isValidCodeResetPassword(String email, String code) {
-        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.GOOGLE);
+        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             return encoder.matches(code, user.getResetToken());
@@ -79,7 +79,7 @@ public class PasswordResetService {
     @Transactional
     public boolean resetPassword(String email, String code, String newPassword) {
         Optional<User> userOptional =
-                userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.GOOGLE);
+                userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
