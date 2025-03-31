@@ -8,5 +8,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface SectionRepositoryCustom {
-    Page<SectionResponseDetailDto> search(Pageable pageable, String kind, String name);
+//    Page<SectionResponseDetailDto> search(Pageable pageable, String kind, String name);
 }

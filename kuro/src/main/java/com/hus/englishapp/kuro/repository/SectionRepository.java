@@ -23,5 +23,5 @@ public interface SectionRepository extends JpaRepository<Section, String>, JpaSp
             "WHERE (:kind IS NULL OR sc.sectionKind = :kind) " +
             "AND (:name IS NULL OR sc.sectionName = :name)")
     Page<SectionResponseDetailDto> searchAll(String name, String kind, Pageable pageable);
-    Optional<Section> findById(String id);
+//    Optional<Section> findById(String id);
 }

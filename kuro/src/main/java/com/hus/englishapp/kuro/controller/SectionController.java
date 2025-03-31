@@ -93,30 +93,30 @@ public class SectionController {
     }
 
 
-    @GetMapping("/search")
-    public ResponseEntity<?> search(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000") Integer size,
-            @RequestParam(name = "sort", required = false) List<String> sorts,
-            @RequestParam(required = false) String sectionKind,
-            @RequestParam(required = false) String sectionName) throws Exception {
-        try {
-            Page<SectionResponseDetailDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
-            ObjectMapper mapper = new ObjectMapper();
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .code(Constants.RESPONSE_CODE.SUCCESS)
-                    .data(mapper.valueToTree(sectionList.getContent()))
-                    .build();
-            return ResponseEntity.ok().body(responseDTO);
-        } catch (Exception e) {
-            ResponseDTO responseDTO = ResponseDTO.builder()
-                    .code(Constants.RESPONSE_CODE.FAILURE)
-                    .data(null)
-                    .msg("error")
-                    .build();
-            return ResponseEntity.ok().body(responseDTO);
-        }
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<?> search(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "1000") Integer size,
+//            @RequestParam(name = "sort", required = false) List<String> sorts,
+//            @RequestParam(required = false) String sectionKind,
+//            @RequestParam(required = false) String sectionName) throws Exception {
+//        try {
+//            Page<SectionResponseDetailDto> sectionList = sectionService.search(PagingUtil.buildPageable(page, size, sorts), sectionKind, sectionName);
+//            ObjectMapper mapper = new ObjectMapper();
+//            ResponseDTO responseDTO = ResponseDTO.builder()
+//                    .code(Constants.RESPONSE_CODE.SUCCESS)
+//                    .data(mapper.valueToTree(sectionList.getContent()))
+//                    .build();
+//            return ResponseEntity.ok().body(responseDTO);
+//        } catch (Exception e) {
+//            ResponseDTO responseDTO = ResponseDTO.builder()
+//                    .code(Constants.RESPONSE_CODE.FAILURE)
+//                    .data(null)
+//                    .msg("error")
+//                    .build();
+//            return ResponseEntity.ok().body(responseDTO);
+//        }
+//    }
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@Validated @RequestBody SectionRequestDto sectionRequestDto) {

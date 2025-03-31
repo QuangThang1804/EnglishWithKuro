@@ -109,18 +109,18 @@ public class SectionService {
     }
 
 
-    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
-        Page<SectionResponseDetailDto> sectionList = sectionRepository.search(pageable, sectionKind, sectionName);
-        List<SectionResponseDetailDto> sectionResponseDetailDtos = new ArrayList<>();
-        for (SectionResponseDetailDto section : sectionList) {
-            SectionResponseDetailDto sectionResponseDetailDto = new SectionResponseDetailDto();
-            sectionResponseDetailDto.setId(section.getId());
-            sectionResponseDetailDto.setSectionKind(section.getSectionKind());
-            sectionResponseDetailDto.setSectionName(section.getSectionName());
-            sectionResponseDetailDtos.add(sectionResponseDetailDto);
-        }
-        return new PageImpl<>(sectionResponseDetailDtos);
-    }
+//    public Page<SectionResponseDetailDto> search(Pageable pageable, String sectionKind, String sectionName) {
+//        Page<SectionResponseDetailDto> sectionList = sectionRepository.search(pageable, sectionKind, sectionName);
+//        List<SectionResponseDetailDto> sectionResponseDetailDtos = new ArrayList<>();
+//        for (SectionResponseDetailDto section : sectionList) {
+//            SectionResponseDetailDto sectionResponseDetailDto = new SectionResponseDetailDto();
+//            sectionResponseDetailDto.setId(section.getId());
+//            sectionResponseDetailDto.setSectionKind(section.getSectionKind());
+//            sectionResponseDetailDto.setSectionName(section.getSectionName());
+//            sectionResponseDetailDtos.add(sectionResponseDetailDto);
+//        }
+//        return new PageImpl<>(sectionResponseDetailDtos);
+//    }
 
     @Transactional
     public Section update(SectionRequestDto sectionRequestDto) {
@@ -166,6 +166,7 @@ public class SectionService {
         return sectionRepository.save(section);
     }
 
+    @Transactional
     public void deleteById(String id) {
         sectionRepository.deleteById(id);
     }

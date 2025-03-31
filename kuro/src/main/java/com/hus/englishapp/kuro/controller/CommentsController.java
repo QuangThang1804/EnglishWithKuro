@@ -1,16 +1,14 @@
 package com.hus.englishapp.kuro.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hus.englishapp.kuro.config.MessageTemplate;
-import com.hus.englishapp.kuro.model.Comment;
+import com.hus.englishapp.kuro.model.Comments;
+import com.hus.englishapp.kuro.model.dto.CommentsResponse;
 import com.hus.englishapp.kuro.model.dto.ResponseDTO;
-import com.hus.englishapp.kuro.service.CommentService;
+import com.hus.englishapp.kuro.service.CommentsService;
 import com.hus.englishapp.kuro.util.Constants;
-import com.hus.englishapp.kuro.util.PagingUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -19,40 +17,46 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("/comments")
 @Validated
 @Slf4j
-public class CommentController {
+public class CommentsController {
     @Autowired
-    private CommentService commentService;
+    private CommentsService commentsService;
 
-    @Autowired
-    private MessageTemplate messageTemplate;
-
-    @PreAuthorize("ROLE_USER")
-    @GetMapping("/findAll")
-    public ResponseEntity<?> findAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "1000") Integer size,
-            @RequestParam(name = "sort", required = false) List<String> sorts) throws Exception {
-        Page<Comment> commentPage = commentService.findAll(PagingUtil.buildPageable(page, size, sorts));
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @GetMapping("/findAllParentCmt")
+    public ResponseEntity<?> findAll() {
+        List<Comments> commentsList = commentsService.findAllParentCmt();
         ObjectMapper mapper = new ObjectMapper();
         ResponseDTO responseDTO = ResponseDTO.builder()
                 .code(Constants.RESPONSE_CODE.SUCCESS)
-                .data(mapper.valueToTree(commentPage.getContent()))
+                .data(mapper.valueToTree(commentsList))
                 .build();
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("ROLE_USER")
-    @PostMapping("/update")
-    public ResponseEntity<?> create(@Validated @RequestBody Comment comment) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @GetMapping("/findAllAnswerCmt")
+    public ResponseEntity<?> findAllAnswerCmt(@RequestParam(name = "parentId") Integer parentId) {
+        List<Comments> commentsList = commentsService.findAllAnswerCmtByParentId(parentId);
+        ObjectMapper mapper = new ObjectMapper();
+        ResponseDTO responseDTO = ResponseDTO.builder()
+                .code(Constants.RESPONSE_CODE.SUCCESS)
+                .data(mapper.valueToTree(commentsList))
+                .build();
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @PostMapping("/create")
+    public ResponseEntity<?> createNew(@Validated @RequestBody Comments request) {
         try {
-            Comment cmt = commentService.update(comment);
+            Comments newComment = commentsService.createNewCmt(request);
             ObjectMapper mapper = new ObjectMapper();
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)
-                    .data(mapper.valueToTree(cmt))
+                    .data(mapper.valueToTree(newComment))
                     .build();
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
@@ -64,20 +68,18 @@ public class CommentController {
         }
     }
 
-    @PreAuthorize("ROLE_USER")
-    @PostMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable @NotNull Integer id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_ADMIN')")
+    @PostMapping("/deleteById")
+    public ResponseEntity<?> deleteById(@Validated @RequestBody CommentsResponse commentsResponse) {
         try {
-            commentService.deleteById(id);
+            commentsService.deleteById(commentsResponse);
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.SUCCESS)
                     .build();
             return ResponseEntity.ok().body(responseDTO);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             ResponseDTO responseDTO = ResponseDTO.builder()
                     .code(Constants.RESPONSE_CODE.FAILURE)
-                    .data(null)
-                    .msg(messageTemplate.message("error.delete.fail"))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
         }
