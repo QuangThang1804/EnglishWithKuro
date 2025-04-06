@@ -58,13 +58,13 @@ public class UserService implements UserDetailsService {
         return userOpt.map(UserInfoDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
     }
-    
+
     @Transactional
     public User saveUser(UserRequestDto userRequestDto) {
         if (userRepository.checkAccountAvailable(
                 userRequestDto.getUsername(),
                 userRequestDto.getEmail(),
-                Constants.TYPE_ACCOUNT.GOOGLE) > 0) {
+                Constants.TYPE_ACCOUNT.NORMAL) > 0) {
             throw new AppException("Tài khoản đã tồn tại!", HttpStatus.BAD_REQUEST);
         }
 

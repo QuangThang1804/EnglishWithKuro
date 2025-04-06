@@ -141,7 +141,7 @@ public class AuthService {
 
             if (Objects.equals(action, Constants.TYPE_ACCOUNT.GOOGLE_TYPE.LOGIN_GOOGLE)) {
                 // Kiểm tra và tạo user nếu chưa tồn tại
-                User user = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.GOOGLE).orElseGet(() -> {
+                User user = userRepository.findByEmailAndProvider(email, Constants.TYPE_ACCOUNT.GOOGLE).orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setAvatar((String) payload.get("picture"));
@@ -160,7 +160,7 @@ public class AuthService {
     }
 
     public void saveRefreshToken(String email, String refreshToken, String typeAccount) {
-        User user = userRepository.findByEmailAndDifferentProvider(email, typeAccount)
+        User user = userRepository.findByEmailAndProvider(email, typeAccount)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         user.setRefreshToken(refreshToken);
