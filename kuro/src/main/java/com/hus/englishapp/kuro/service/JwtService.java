@@ -23,7 +23,7 @@ public class JwtService {
 
     // Generate token with given user name
     public String generateToken(String username) {
-        return createToken(new HashMap<>(), username, 60 * 60 * 1000);
+        return createToken(new HashMap<>(), username, 60 * 1000);
     }
 
     // 🔹 Tạo Refresh Token (Hết hạn sau 7 ngày)

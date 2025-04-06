@@ -5,14 +5,9 @@ import com.hus.englishapp.kuro.model.User;
 import com.hus.englishapp.kuro.model.dto.response.PasswordConfirmRequest;
 import com.hus.englishapp.kuro.repository.UserRepository;
 import com.hus.englishapp.kuro.util.Constants;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +16,6 @@ import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 @Service
 public class PasswordResetService {
@@ -38,7 +32,7 @@ public class PasswordResetService {
 
     @Transactional
     public void sendResetEmail(String email) {
-        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
+        Optional<User> userOptional = userRepository.findByEmailAndProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
         if (userOptional.isPresent()) {
             // Create code random (6 number)
             Random random = new Random();
@@ -67,7 +61,7 @@ public class PasswordResetService {
     }
 
     public boolean isValidCodeResetPassword(String email, String code) {
-        Optional<User> userOptional = userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
+        Optional<User> userOptional = userRepository.findByEmailAndProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             return encoder.matches(code, user.getResetToken());
@@ -79,7 +73,7 @@ public class PasswordResetService {
     @Transactional
     public boolean resetPassword(String email, String code, String newPassword) {
         Optional<User> userOptional =
-                userRepository.findByEmailAndDifferentProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
+                userRepository.findByEmailAndProvider(email, Constants.TYPE_ACCOUNT.NORMAL);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
