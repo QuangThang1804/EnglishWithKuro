@@ -71,6 +71,7 @@ public class AuthService {
                 ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
                         .httpOnly(true)
                         .secure(true) // Chỉ hoạt động với HTTPS
+                        .sameSite("None") // nếu frontend và backend khác domain
                         .path("/") // Chỉ gửi với request tới /refresh
                         .maxAge(7 * 24 * 60 * 60) // 7 ngày
                         .build();
@@ -114,6 +115,7 @@ public class AuthService {
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", newRefreshToken)
                 .httpOnly(true)
                 .secure(true) // Chỉ hoạt động với HTTPS
+                .sameSite("None") // nếu frontend và backend khác domain
                 .path("/") // Chỉ gửi với request tới /refresh
                 .maxAge(7 * 24 * 60 * 60) // 7 ngày
                 .build();
