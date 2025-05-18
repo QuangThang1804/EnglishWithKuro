@@ -21,7 +21,7 @@ public interface SectionRepository extends JpaRepository<Section, String>, JpaSp
     @Query("SELECT new com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto(sc.id, sc.sectionKind, sc.sectionName) " +
             "FROM Section sc " +
             "WHERE (:kind IS NULL OR sc.sectionKind = :kind) " +
-            "AND (:name IS NULL OR sc.sectionName = :name)")
+            "AND (:name IS NULL OR sc.sectionName like CONCAT('%', :name, '%'))")
     Page<SectionResponseDetailDto> searchAll(String name, String kind, Pageable pageable);
 //    Optional<Section> findById(String id);
 }

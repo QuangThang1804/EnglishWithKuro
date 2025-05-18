@@ -8,6 +8,7 @@ import com.hus.englishapp.kuro.model.dto.SectionResponseContentDto;
 import com.hus.englishapp.kuro.model.dto.SectionResponseDetailDto;
 import com.hus.englishapp.kuro.repository.SectionContentRepository;
 import com.hus.englishapp.kuro.repository.SectionRepository;
+import com.hus.englishapp.kuro.util.DataUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -81,9 +82,9 @@ public class SectionService {
 
         // Nếu số đáp án sai < 3, lặp lại để có đủ 3 đáp án
         while (incorrectAnswers.size() < 3) {
-            if (incorrectAnswers.isEmpty()){
+            if (incorrectAnswers.isEmpty()) {
                 incorrectAnswers.add("Bóng đá"); // Tránh lỗi thiếu đáp án
-            }else if (incorrectAnswers.size() == 1){
+            } else if (incorrectAnswers.size() == 1) {
                 incorrectAnswers.add("Thời trang"); // Tránh lỗi thiếu đáp án
             } else {
                 incorrectAnswers.add("Trang sức"); // Tránh lỗi thiếu đáp án
@@ -105,7 +106,11 @@ public class SectionService {
 
 
     public Page<SectionResponseDetailDto> searchAll(String name, String kind, Pageable pageable) {
-        return sectionRepository.searchAll(name, kind, pageable);
+        return sectionRepository.searchAll(
+                DataUtil.filterStringAndEmptyToNull(name), // Check null or empty
+                kind,
+                pageable
+        );
     }
 
 
@@ -170,7 +175,6 @@ public class SectionService {
     public void deleteById(String id) {
         sectionRepository.deleteById(id);
     }
-
 
 
 //    public Page<Section> changeStr(Pageable pageable) {
